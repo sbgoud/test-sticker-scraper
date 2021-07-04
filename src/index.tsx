@@ -1,5 +1,11 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom";
+import { BrowserRouter } from "react-router-dom";
+
+import { GeistProvider, CssBaseline } from "@geist-ui/react";
+
+import "./index.css";
+import "inter-ui/inter.css";
 
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
@@ -9,7 +15,12 @@ import StoreProvider from "./components/StoreProvider";
 ReactDOM.render(
     <StrictMode>
         <StoreProvider>
-            <App />
+            <GeistProvider>
+                <CssBaseline />
+                <BrowserRouter>
+                    <App />
+                </BrowserRouter>
+            </GeistProvider>
         </StoreProvider>
     </StrictMode>,
     document.getElementById("root")

@@ -3,15 +3,18 @@ import { observer } from "mobx-react-lite";
 
 import { StoreContext } from "./components/StoreProvider";
 
+import AuthProvider from "./app/AuthProvider";
+import Root from "./app/Root";
+
 function App() {
     const store = useContext(StoreContext);
 
+    console.log(store.Authorization.state);
+
     return (
-        <>
-            {store.Connection.state}
-            <br />
-            {store.Authorization.state}
-        </>
+        <AuthProvider>
+            <Root />
+        </AuthProvider>
     );
 }
 
