@@ -13,6 +13,7 @@ import styles from "./ChatRow.module.css";
 
 const ChatRow: FC<ListChildComponentProps<Chat[]>> = ({ data, index, style }) => {
     const chat = data[index];
+
     return (
         <NavLink to={`/conversation/${chat.info?.id}`} style={style}>
             <Grid.Container className={styles.chat} alignItems="center" height="100%" width="100%">

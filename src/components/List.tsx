@@ -8,6 +8,7 @@ const List = forwardRef<Scrollbars, HTMLProps<HTMLDivElement>>(({ onScroll, styl
         } else if (typeof ref === "function") {
             ref?.(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

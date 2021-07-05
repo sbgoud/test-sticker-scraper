@@ -1,7 +1,7 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat as AirgramChat, ChatPosition, Message } from "@airgram/core";
 
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
 
@@ -27,7 +27,10 @@ export default class ChatsStore {
 
             chat.info = ctx.update.chat;
 
-            this.chats.set(ctx.update.chat.id, chat);
+            runInAction(() => {
+                this.chats.set(ctx.update.chat.id, chat!);
+            });
+
             return next();
         })
         .add(UPDATE.updateChatPosition, (ctx, next) => {
@@ -39,7 +42,10 @@ export default class ChatsStore {
 
             chat.position = ctx.update.position;
 
-            this.chats.set(ctx.update.chatId, chat);
+            runInAction(() => {
+                this.chats.set(ctx.update.chatId, chat!);
+            });
+
             return next();
         })
         .add(UPDATE.updateChatLastMessage, (ctx, next) => {
@@ -51,7 +57,16 @@ export default class ChatsStore {
 
             chat.lastMessage = ctx.update.lastMessage;
 
-            this.chats.set(ctx.update.chatId, chat);
+            const position = ctx.update.positions.find((x) => x.list._ === "chatListMain");
+
+            if (position) {
+                chat.position = position;
+            }
+
+            runInAction(() => {
+                this.chats.set(ctx.update.chatId, chat!);
+            });
+
             return next();
         })
         .build();

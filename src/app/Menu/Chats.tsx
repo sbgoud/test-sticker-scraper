@@ -16,6 +16,8 @@ import styles from "./Chats.module.css";
 const Chats: FC = () => {
     const { Chats } = useContext(StoreContext);
 
+    const itemData = Chats.chatsList;
+
     useEffect(() => {
         Chats.init();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -27,11 +29,11 @@ const Chats: FC = () => {
                 {({ height, width }) => (
                     <FixedSizeList
                         outerElementType={List}
-                        itemData={Chats.chatsList}
+                        itemData={itemData}
+                        itemCount={itemData.length}
                         itemSize={64}
                         height={height}
                         width={width}
-                        itemCount={Chats.chatsList.length}
                     >
                         {ChatRow}
                     </FixedSizeList>
