@@ -1,0 +1,8 @@
+.card {
+    overflow: hidden;
+    justify-content: flex-start!important;
+}
+
+.card :global(.avatar){
+    flex-shrink: 0;
+}

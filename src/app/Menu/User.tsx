@@ -1,8 +1,10 @@
 import { FC, useContext, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 
-import { Grid, User as UserCard, Spinner, Button } from "@geist-ui/react";
+import { Grid, Spinner, Button } from "@geist-ui/react";
 import { StoreContext } from "../../components/StoreProvider";
+
+import UserCard from "../../components/UserCard";
 
 import { FiLogOut } from "react-icons/fi";
 

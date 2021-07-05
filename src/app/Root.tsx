@@ -1,10 +1,6 @@
 import { Switch, Route, Redirect } from "react-router";
 
-import { Grid, Page } from "@geist-ui/react";
-
-import { useMediaQuery } from "react-responsive";
-
-import Footer from "./Footer";
+import { Grid, useMediaQuery } from "@geist-ui/react";
 
 import Menu from "./Menu/Menu";
 import Conversation from "./Conversation/Conversation";
@@ -12,7 +8,7 @@ import Conversation from "./Conversation/Conversation";
 import styles from "./Root.module.css";
 
 export default function Root() {
-    const isMobile = useMediaQuery({ query: "(max-width: 650px)" });
+    const isMobile = useMediaQuery("sm", { match: "down" });
 
     return (
         <Grid.Container gap={0} width="100%" height="100%">

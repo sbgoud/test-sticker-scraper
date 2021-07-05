@@ -1,17 +1,10 @@
-import {
-    ApiResponse,
-    AuthorizationStateUnion,
-    FilePart,
-    MiddlewareFn,
-    ReadFilePartParams,
-    UpdateAuthorizationState,
-    User,
-} from "@airgram/core";
+import { AuthorizationStateUnion, FilePart, User } from "@airgram/core";
 import { UPDATE, AUTHORIZATION_STATE } from "@airgram/constants";
 
 import RootStore from "./RootStore";
 import { makeAutoObservable, runInAction } from "mobx";
 import { blobToBase64 } from "../utils";
+import HandlersBuilder from "../utils/HandlersBuilder";
 
 export default class AuthorizationStore {
     state?: AuthorizationStateUnion = undefined;
@@ -21,15 +14,13 @@ export default class AuthorizationStore {
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
-            middleware: false,
+            handlers: false,
         });
     }
 
-    middleware = (): MiddlewareFn => async (ctx, next) => {
-        if (ctx._ === UPDATE.updateAuthorizationState && "update" in ctx) {
-            const context = ctx.update as unknown as UpdateAuthorizationState;
-
-            const state = context.authorizationState;
+    handlers = new HandlersBuilder()
+        .add(UPDATE.updateAuthorizationState, (ctx) => {
+            const state = ctx.update.authorizationState;
 
             if (
                 this.firstLaunch &&
@@ -44,10 +35,8 @@ export default class AuthorizationStore {
             runInAction(() => {
                 this.state = state;
             });
-        }
-
-        return next();
-    };
+        })
+        .build();
 
     async switchToQr() {
         if (this.state?._ === AUTHORIZATION_STATE.authorizationStateWaitOtherDeviceConfirmation) {
@@ -114,8 +103,10 @@ export default class AuthorizationStore {
         const photo = await this.rootStore.Airgram.api.readFilePart({ fileId: photoId });
 
         if (photo.response._ === "filePart") {
-            this.userPhoto = await blobToBase64((photo.response as FilePart).data as unknown as Blob);
-            console.log(this.userPhoto);
+            const userPhoto = await blobToBase64((photo.response as FilePart).data as unknown as Blob);
+            runInAction(() => {
+                this.userPhoto = userPhoto;
+            });
         }
     }
 }

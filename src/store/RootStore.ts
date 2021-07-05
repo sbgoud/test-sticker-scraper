@@ -1,4 +1,4 @@
-import { Airgram } from "@airgram/web";
+import { Airgram, MiddlewareFn } from "@airgram/web";
 import { makeAutoObservable } from "mobx";
 import createAirgram from "./Airgram";
 
@@ -6,6 +6,11 @@ import AuthorizationStore from "./AuthorizationStore";
 import ChatsStore from "./ChatsStore";
 import ConnectionStore from "./ConnectionStore";
 import ThemeStore from "./ThemeStore";
+
+const leakedActions: MiddlewareFn = (ctx, next) => {
+    console.log("recieved", ctx);
+    return next();
+};
 
 export default class RootStore {
     Theme = new ThemeStore();
@@ -20,6 +25,6 @@ export default class RootStore {
 
     async resetAirgram() {
         this.Airgram = await createAirgram();
-        this.Airgram.use(this.Authorization, this.Connection, this.Chats);
+        this.Airgram.use(this.Authorization.handlers, this.Connection, this.Chats.handlers, leakedActions);
     }
 }

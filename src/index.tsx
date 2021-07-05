@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 
 import "./index.css";
 import "inter-ui/inter.css";
@@ -13,9 +13,9 @@ import StoreProvider from "./components/StoreProvider";
 ReactDOM.render(
     <StrictMode>
         <StoreProvider>
-            <BrowserRouter basename={process.env.PUBLIC_URL}>
+            <HashRouter>
                 <App />
-            </BrowserRouter>
+            </HashRouter>
         </StoreProvider>
     </StrictMode>,
     document.getElementById("root")
