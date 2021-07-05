@@ -23,7 +23,11 @@ const QrCode = () => {
                 <Spacer />
                 <div className={styles.codeArea}>
                     <CenterLayout disablePadding>
-                        {state.link ? <RenderQrCode renderAs="svg" value={state.link} size={240} /> : <Spinner />}
+                        {state.link ? (
+                            <RenderQrCode includeMargin renderAs="svg" value={state.link} size={240} />
+                        ) : (
+                            <Spinner />
+                        )}
                     </CenterLayout>
                 </div>
                 <Spacer />

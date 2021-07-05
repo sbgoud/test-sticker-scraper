@@ -1,12 +1,24 @@
-import { AuthorizationStateUnion, MiddlewareFn, UpdateAuthorizationState } from "@airgram/core";
+import {
+    ApiResponse,
+    AuthorizationStateUnion,
+    FilePart,
+    MiddlewareFn,
+    ReadFilePartParams,
+    UpdateAuthorizationState,
+    User,
+} from "@airgram/core";
 import { UPDATE, AUTHORIZATION_STATE } from "@airgram/constants";
 
 import RootStore from "./RootStore";
 import { makeAutoObservable, runInAction } from "mobx";
+import { blobToBase64 } from "../utils";
 
 export default class AuthorizationStore {
     state?: AuthorizationStateUnion = undefined;
     firstLaunch = true;
+    user?: User;
+    userPhoto?: string;
+
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
             middleware: false,
@@ -64,6 +76,12 @@ export default class AuthorizationStore {
         await this.rootStore.resetAirgram();
     }
 
+    async logOut() {
+        await this.rootStore.Airgram.api.logOut();
+        this.firstLaunch = true;
+        await this.rootStore.resetAirgram();
+    }
+
     sendPhoneNumber(phoneNumber: string) {
         return this.rootStore.Airgram.api.setAuthenticationPhoneNumber({ phoneNumber });
     }
@@ -74,5 +92,30 @@ export default class AuthorizationStore {
 
     sendPassword(password: string) {
         return this.rootStore.Airgram.api.checkAuthenticationPassword({ password });
+    }
+
+    async getMe() {
+        const user = await this.rootStore.Airgram.api.getMe();
+
+        if (user.response._ === "error") {
+            throw user.response;
+        }
+
+        runInAction(() => {
+            this.user = user.response as User;
+        });
+
+        const photoId = user.response.profilePhoto?.small?.id;
+
+        if (photoId === undefined) {
+            return;
+        }
+
+        const photo = await this.rootStore.Airgram.api.readFilePart({ fileId: photoId });
+
+        if (photo.response._ === "filePart") {
+            this.userPhoto = await blobToBase64((photo.response as FilePart).data as unknown as Blob);
+            console.log(this.userPhoto);
+        }
     }
 }

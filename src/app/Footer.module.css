@@ -1,0 +1,7 @@
+.toogle {
+    padding: 0!important;
+}
+
+.toogleDark :global(.toggle) {
+    background-color: white!important;
+}

@@ -2,8 +2,6 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 
-import { GeistProvider, CssBaseline } from "@geist-ui/react";
-
 import "./index.css";
 import "inter-ui/inter.css";
 
@@ -15,12 +13,9 @@ import StoreProvider from "./components/StoreProvider";
 ReactDOM.render(
     <StrictMode>
         <StoreProvider>
-            <GeistProvider>
-                <CssBaseline />
-                <BrowserRouter>
-                    <App />
-                </BrowserRouter>
-            </GeistProvider>
+            <BrowserRouter basename={process.env.PUBLIC_URL}>
+                <App />
+            </BrowserRouter>
         </StoreProvider>
     </StrictMode>,
     document.getElementById("root")
