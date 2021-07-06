@@ -17,55 +17,44 @@ export default class ChatsStore {
         makeAutoObservable(this, { handlers: false });
     }
 
+    updateChat(chatId: number, updater: (chat: Chat) => Chat | void) {
+        let chat = this.chats.get(chatId);
+        if (!chat) {
+            chat = {};
+        }
+
+        runInAction(() => {
+            chat = updater(chat!) ?? chat;
+            this.chats.set(chatId, chat!);
+        });
+    }
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {
-            let chat = this.chats.get(ctx.update.chat.id);
-
-            if (!chat) {
-                chat = {};
-            }
-
-            chat.info = ctx.update.chat;
-
-            runInAction(() => {
-                this.chats.set(ctx.update.chat.id, chat!);
+            this.updateChat(ctx.update.chat.id, (chat) => {
+                chat.info = ctx.update.chat;
             });
 
             return next();
         })
         .add(UPDATE.updateChatPosition, (ctx, next) => {
-            let chat = this.chats.get(ctx.update.chatId);
-
-            if (!chat) {
-                chat = {};
-            }
-
-            chat.position = ctx.update.position;
-
-            runInAction(() => {
-                this.chats.set(ctx.update.chatId, chat!);
+            this.updateChat(ctx.update.chatId, (chat) => {
+                chat.position = ctx.update.position;
             });
 
             return next();
         })
         .add(UPDATE.updateChatLastMessage, (ctx, next) => {
-            let chat = this.chats.get(ctx.update.chatId);
-
-            if (!chat) {
-                chat = {};
-            }
-
-            chat.lastMessage = ctx.update.lastMessage;
+            this.updateChat(ctx.update.chatId, (chat) => {
+                chat.lastMessage = ctx.update.lastMessage;
+            });
 
             const position = ctx.update.positions.find((x) => x.list._ === "chatListMain");
 
             if (position) {
-                chat.position = position;
+                this.updateChat(ctx.update.chatId, (chat) => {
+                    chat.position = position;
+                });
             }
-
-            runInAction(() => {
-                this.chats.set(ctx.update.chatId, chat!);
-            });
 
             return next();
         })

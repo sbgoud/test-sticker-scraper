@@ -8,7 +8,7 @@ import ConnectionStore from "./ConnectionStore";
 import ThemeStore from "./ThemeStore";
 
 const leakedActions: MiddlewareFn = (ctx, next) => {
-    console.log("recieved", ctx);
+    //console.log("recieved", ctx);
     return next();
 };
 

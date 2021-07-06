@@ -1,16 +1,14 @@
-import { AuthorizationStateUnion, FilePart, User } from "@airgram/core";
+import { AuthorizationStateUnion, User } from "@airgram/core";
 import { UPDATE, AUTHORIZATION_STATE } from "@airgram/constants";
 
 import RootStore from "./RootStore";
 import { makeAutoObservable, runInAction } from "mobx";
-import { blobToBase64 } from "../utils";
 import HandlersBuilder from "../utils/HandlersBuilder";
 
 export default class AuthorizationStore {
     state?: AuthorizationStateUnion = undefined;
     firstLaunch = true;
     user?: User;
-    userPhoto?: string;
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
@@ -93,20 +91,5 @@ export default class AuthorizationStore {
         runInAction(() => {
             this.user = user.response as User;
         });
-
-        const photoId = user.response.profilePhoto?.small?.id;
-
-        if (photoId === undefined) {
-            return;
-        }
-
-        const photo = await this.rootStore.Airgram.api.readFilePart({ fileId: photoId });
-
-        if (photo.response._ === "filePart") {
-            const userPhoto = await blobToBase64((photo.response as FilePart).data as unknown as Blob);
-            runInAction(() => {
-                this.userPhoto = userPhoto;
-            });
-        }
     }
 }
