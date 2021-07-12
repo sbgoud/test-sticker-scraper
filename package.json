@@ -72,9 +72,6 @@
         "@types/react-responsive": "^8.0.2",
         "@types/react-router": "^5.1.15",
         "@types/react-router-dom": "^5.1.7",
-        "@types/react-virtualized-auto-sizer": "^1.0.0",
-        "@types/react-window": "^1.8.3",
-        "@types/react-window-infinite-loader": "^1.0.3",
         "@types/webpack": "5.28.0"
     }
 }

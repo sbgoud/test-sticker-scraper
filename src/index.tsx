@@ -8,7 +8,7 @@ import "inter-ui/inter.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
-import StoreProvider from "./components/StoreProvider";
+import { StoreProvider } from "./components";
 
 ReactDOM.render(
     <StrictMode>

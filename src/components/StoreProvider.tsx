@@ -5,6 +5,6 @@ export const store = new RootStore();
 
 export const StoreContext = createContext(store);
 
-const StoreProvider: FC = ({ children }) => <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
-
-export default StoreProvider;
+export const StoreProvider: FC = ({ children }) => (
+    <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
+);

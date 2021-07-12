@@ -3,9 +3,8 @@ import { observer } from "mobx-react-lite";
 
 import { Grid } from "@geist-ui/react";
 
-import { StoreContext } from "../../components/StoreProvider";
+import { StoreContext, List } from "../../components";
 
-import List from "../../components/List";
 import ChatRow from "./ChatRow";
 
 import styles from "./Chats.module.css";

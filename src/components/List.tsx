@@ -1,7 +1,7 @@
 import { forwardRef, useCallback } from "react";
 import Scrollbars, { ScrollbarProps } from "react-custom-scrollbars-2";
 
-const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...other }, ref) => {
+export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...other }, ref) => {
     const refSetter = useCallback((scrollbarsRef: any) => {
         if (scrollbarsRef && ref && typeof ref === "object") {
             ref.current = scrollbarsRef.view;
@@ -19,5 +19,3 @@ const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...othe
         </Scrollbars>
     );
 });
-
-export default List;

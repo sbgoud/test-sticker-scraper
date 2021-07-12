@@ -1,12 +1,14 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext, useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router";
+import { observer } from "mobx-react-lite";
 
-import { Text } from "@geist-ui/react";
+import { Button, Grid, Text } from "@geist-ui/react";
 
-import CenterLayout from "../../components/CenterLayout";
+import { CenterLayout, StoreContext, Toolbar, UserCard } from "../../components";
 import StickerMessagesStore from "../../store/StickerMessagesStore";
-import { StoreContext } from "../../components/StoreProvider";
-import { useEffect } from "react";
+
+import { FiArrowLeft } from "react-icons/fi";
+import { useFileStore } from "../../store/FileStore";
 
 interface Props extends RouteComponentProps<{ id: string }> {}
 
@@ -17,6 +19,11 @@ const Conversation: FC<Props> = ({ match }) => {
     const rootStore = useContext(StoreContext);
     const { Chats } = rootStore;
     const [messages] = useState(() => new StickerMessagesStore(rootStore, chatId));
+
+    const chat = messages.chat;
+    const list = messages.messages;
+    console.log(list?.length);
+    const photo = useFileStore(chat?.photo?.small);
 
     useEffect(() => {
         if (Chats.chats.has(chatId)) {
@@ -36,7 +43,18 @@ const Conversation: FC<Props> = ({ match }) => {
         );
     }
 
-    return <>Conversation</>;
+    return (
+        <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
+            <Toolbar>
+                <Grid sm md={0}>
+                    <Button auto type="abort" iconRight={<FiArrowLeft />} />
+                </Grid>
+                <Grid xs>
+                    <UserCard src={photo.base64} name={chat?.title} />
+                </Grid>
+            </Toolbar>
+        </Grid.Container>
+    );
 };
 
-export default Conversation;
+export default observer(Conversation);

@@ -1,9 +1,9 @@
 import { useCallback, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import CenterLayout from "../../components/CenterLayout";
-import { StoreContext } from "../../components/StoreProvider";
 import { Button, Grid, Input, Spacer, Text } from "@geist-ui/react";
+
+import { CenterLayout, StoreContext } from "../../components";
 
 const PhoneNumber = () => {
     const { Authorization } = useContext(StoreContext);

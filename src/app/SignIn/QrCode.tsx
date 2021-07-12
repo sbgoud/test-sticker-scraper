@@ -4,8 +4,7 @@ import { AuthorizationStateWaitOtherDeviceConfirmation } from "@airgram/web";
 import { Grid, Button, Spinner, Text, Spacer } from "@geist-ui/react";
 import RenderQrCode from "qrcode.react";
 
-import CenterLayout from "../../components/CenterLayout";
-import { StoreContext } from "../../components/StoreProvider";
+import { StoreContext, CenterLayout } from "../../components";
 
 import styles from "./QrCode.module.css";
 import { observer } from "mobx-react-lite";

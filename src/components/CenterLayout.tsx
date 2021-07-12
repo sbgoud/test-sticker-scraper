@@ -7,8 +7,6 @@ export interface CenterLayoutProps extends HTMLProps<HTMLDivElement> {
     disablePadding?: boolean;
 }
 
-const CenterLayout: FC<CenterLayoutProps> = ({ className, disablePadding, ...other }) => {
+export const CenterLayout: FC<CenterLayoutProps> = ({ className, disablePadding, ...other }) => {
     return <div className={cx(styles.root, { [styles.padding]: !disablePadding }, className)} {...other} />;
 };
-
-export default CenterLayout;

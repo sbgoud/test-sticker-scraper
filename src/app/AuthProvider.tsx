@@ -5,9 +5,7 @@ import { AUTHORIZATION_STATE } from "@airgram/constants";
 
 import { Spinner } from "@geist-ui/react";
 
-import { StoreContext } from "../components/StoreProvider";
-
-import CenterLayout from "../components/CenterLayout";
+import { StoreContext, CenterLayout } from "../components";
 import SignIn from "./SignIn/SignIn";
 
 const loadingState: string[] = [

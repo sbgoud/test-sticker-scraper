@@ -5,13 +5,14 @@ import { FC } from "react";
 
 import User from "./User";
 import Chats from "./Chats";
+import { Toolbar } from "../../components";
 
 const Menu: FC = () => {
     return (
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
-            <Grid.Container height="64px" alignItems="center">
+            <Toolbar>
                 <User />
-            </Grid.Container>
+            </Toolbar>
             <Chats />
         </Grid.Container>
     );

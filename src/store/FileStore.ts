@@ -1,10 +1,13 @@
 import { makeAutoObservable } from "mobx";
 
-import { File } from "@airgram/core";
+import { DownloadFileParams, File } from "@airgram/core";
 import RootStore from "./RootStore";
 import { blobToBase64 } from "../utils";
 import { useContext, useEffect, useState } from "react";
 import { StoreContext } from "../components/StoreProvider";
+import HandlersBuilder from "../utils/HandlersBuilder";
+import { UPDATE } from "@airgram/constants";
+import { useLocalObservable } from "mobx-react-lite";
 
 const cache = new Map<number, [Blob, string]>();
 
@@ -14,19 +17,40 @@ interface IFile {
     base64?: string;
 }
 
+type DownloadParams = Omit<DownloadFileParams, "fileId">;
+
 export default class FileStore implements IFile {
     file?: File = undefined;
     blob?: Blob = undefined;
     base64?: string = undefined;
+    params?: DownloadParams = undefined;
 
-    constructor(private rootStore: RootStore, file?: File) {
+    constructor(private rootStore: RootStore, file?: File, params?: DownloadParams) {
         makeAutoObservable(this);
         this.file = file;
+        this.params = params;
         this.load();
+
+        rootStore.events.addListener(RootStore.eventName, this.handlers);
     }
 
-    setFile(file?: File) {
+    dispose() {
+        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+    }
+
+    handlers = new HandlersBuilder()
+        .add(UPDATE.updateFile, (ctx, next) => {
+            if (ctx.update.file.id === this.file?.id) {
+                this.load();
+            }
+
+            return next();
+        })
+        .build();
+
+    setFile(file?: File, params?: DownloadParams) {
         this.file = file;
+        this.params = params;
         return this.load();
     }
 
@@ -47,7 +71,7 @@ export default class FileStore implements IFile {
             return;
         }
 
-        await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 2 });
+        await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 2, ...this.params });
 
         const file = await this.rootStore.Airgram.api.readFilePart({ fileId });
 
@@ -65,18 +89,27 @@ export default class FileStore implements IFile {
     }
 }
 
-export function useFileStore(file?: File) {
+export function useFileStore(file?: File, params?: DownloadParams): IFile {
     const rootStore = useContext(StoreContext);
 
-    const [store] = useState(() => new FileStore(rootStore));
+    const store = useLocalObservable(() => new FileStore(rootStore));
     const [state, setState] = useState<IFile | undefined>(undefined);
 
     useEffect(() => {
+        return () => {
+            store.dispose();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         (async () => {
-            await store.setFile(file);
-            setState(store);
+            await store.setFile(file, params);
+            const { blob, base64 } = store;
+            setState({ file, blob, base64 });
         })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [file, store]);
 
-    return state;
+    return { file, blob: state?.blob ?? store.blob, base64: state?.base64 ?? store.base64 };
 }

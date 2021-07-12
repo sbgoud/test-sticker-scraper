@@ -2,17 +2,16 @@ import { FC, useContext, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 
 import { Grid, Spinner, Button } from "@geist-ui/react";
-import { StoreContext } from "../../components/StoreProvider";
+import { StoreContext, UserCard } from "../../components";
 import { useFileStore } from "../../store/FileStore";
-
-import UserCard from "../../components/UserCard";
 
 import { FiLogOut } from "react-icons/fi";
 
 const User: FC = () => {
     const { Authorization } = useContext(StoreContext);
 
-    const photo = useFileStore(Authorization.user?.profilePhoto?.small);
+    const photo = useFileStore(Authorization.user?.profilePhoto?.small, { priority: 32 });
+    const src = photo?.base64;
 
     useEffect(() => {
         Authorization.getMe();
@@ -25,7 +24,7 @@ const User: FC = () => {
 
     return (
         <Grid.Container wrap="nowrap" alignItems="center" xs>
-            <UserCard src={photo?.base64} name={`${Authorization.user.firstName} ${Authorization.user.lastName}`}>
+            <UserCard src={src} name={`${Authorization.user.firstName} ${Authorization.user.lastName}`}>
                 {Authorization.user.username}
             </UserCard>
             <div style={{ flex: 1 }} />

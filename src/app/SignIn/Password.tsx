@@ -5,8 +5,7 @@ import { AuthorizationStateWaitPassword } from "@airgram/web";
 
 import { Button, Grid, Input, Spacer, Text } from "@geist-ui/react";
 
-import CenterLayout from "../../components/CenterLayout";
-import { StoreContext } from "../../components/StoreProvider";
+import { StoreContext, CenterLayout } from "../../components";
 
 const Password = () => {
     const { Authorization } = useContext(StoreContext);

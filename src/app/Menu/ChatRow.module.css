@@ -1,3 +1,8 @@
 .chat {
     height: 64px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.active_chat {
+    background-color: var(--palette-accents_2);
 }
