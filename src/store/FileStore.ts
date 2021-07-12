@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 
 import { File } from "@airgram/core";
 import RootStore from "./RootStore";
@@ -15,12 +15,13 @@ interface IFile {
 }
 
 export default class FileStore implements IFile {
+    file?: File = undefined;
     blob?: Blob = undefined;
     base64?: string = undefined;
 
-    constructor(private rootStore: RootStore, public file?: File) {
+    constructor(private rootStore: RootStore, file?: File) {
         makeAutoObservable(this);
-
+        this.file = file;
         this.load();
     }
 

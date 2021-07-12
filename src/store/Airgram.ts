@@ -6,6 +6,7 @@ const options: AirgramConfig = {
     apiHash: process.env.REACT_APP_API_HASH,
     jsLogVerbosityLevel: "info",
     logVerbosityLevel: 2,
+    useSecretChats: false,
 };
 
 let prevInstance: Airgram | undefined = undefined;

@@ -13,6 +13,7 @@ export interface Chat {
 
 export default class ChatsStore {
     chats = new Map<number, Chat>();
+
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, { handlers: false });
     }
@@ -60,8 +61,21 @@ export default class ChatsStore {
         })
         .build();
 
-    async init() {
-        await this.rootStore.Airgram.api.getChats({ chatList: { _: "chatListMain" }, limit: 10 });
+    load() {
+        let offsetOrder = "9223372036854775807";
+
+        if (this.chatsList.length) {
+            const order = this.chatsList[this.chatsList.length - 1].position?.order;
+            if (order) {
+                offsetOrder = order;
+            }
+        }
+
+        this.rootStore.Airgram.api.getChats({
+            chatList: { _: "chatListMain" },
+            limit: 10,
+            offsetOrder,
+        });
     }
 
     get chatsList() {

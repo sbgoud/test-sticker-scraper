@@ -25,7 +25,10 @@ export default function Root() {
                     </Grid>
                     <Grid className={styles.panel} sm={16} md={18} lg={20} xl={22}>
                         <Switch>
-                            <Route path="/conversation/:id?" component={Conversation} />
+                            <Route
+                                path="/conversation/:id?"
+                                render={(props) => <Conversation key={props.match.params.id} {...(props as any)} />}
+                            />
                             <Redirect to="conversation" />
                         </Switch>
                     </Grid>

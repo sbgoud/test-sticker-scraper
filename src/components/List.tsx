@@ -1,9 +1,11 @@
-import { forwardRef, useCallback, HTMLProps } from "react";
-import Scrollbars from "react-custom-scrollbars-2";
+import { forwardRef, useCallback } from "react";
+import Scrollbars, { ScrollbarProps } from "react-custom-scrollbars-2";
 
-const List = forwardRef<Scrollbars, HTMLProps<HTMLDivElement>>(({ onScroll, style, children }, ref) => {
-    const refSetter = useCallback((scrollbarsRef) => {
-        if (scrollbarsRef && typeof ref === "function") {
+const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...other }, ref) => {
+    const refSetter = useCallback((scrollbarsRef: any) => {
+        if (scrollbarsRef && ref && typeof ref === "object") {
+            ref.current = scrollbarsRef.view;
+        } else if (scrollbarsRef && typeof ref === "function") {
             ref?.(scrollbarsRef.view);
         } else if (typeof ref === "function") {
             ref?.(null);
@@ -12,7 +14,7 @@ const List = forwardRef<Scrollbars, HTMLProps<HTMLDivElement>>(({ onScroll, styl
     }, []);
 
     return (
-        <Scrollbars ref={refSetter} style={{ ...style, overflow: "hidden" }} onScroll={onScroll}>
+        <Scrollbars ref={refSetter} style={{ ...style }} {...other}>
             {children}
         </Scrollbars>
     );

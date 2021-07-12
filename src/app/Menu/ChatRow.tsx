@@ -8,17 +8,17 @@ import { Chat } from "../../store/ChatsStore";
 import UserCard from "../../components/UserCard";
 import { useFileStore } from "../../store/FileStore";
 
-import { ListChildComponentProps } from "react-window";
-
 import styles from "./ChatRow.module.css";
 
-const ChatRow: FC<ListChildComponentProps<Chat[]>> = ({ data, index, style }) => {
-    const chat = data[index];
+interface ChatRowProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+    chat: Chat;
+}
 
+const ChatRow: FC<ChatRowProps> = ({ chat, ...other }) => {
     const photo = useFileStore(chat.info?.photo?.small);
 
     return (
-        <NavLink key={index} to={`/conversation/${chat.info?.id}`} style={style}>
+        <NavLink to={`/conversation/${chat.info?.id}`} {...other}>
             <Grid.Container className={styles.chat} alignItems="center" height="100%" width="100%">
                 <UserCard src={photo?.base64} name={chat.info?.title} />
             </Grid.Container>
