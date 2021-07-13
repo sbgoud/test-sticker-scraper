@@ -1,1 +1,2 @@
-export { default as blobToBase64 } from "./blobToBase64";
+export { default as HandlersBuilder } from "./HandlersBuilder";
+export * from "./convertBlob";

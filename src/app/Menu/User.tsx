@@ -10,8 +10,8 @@ import { FiLogOut } from "react-icons/fi";
 const User: FC = () => {
     const { Authorization } = useContext(StoreContext);
 
-    const photo = useFileStore(Authorization.user?.profilePhoto?.small, { priority: 32 });
-    const src = photo?.base64;
+    const photo = useFileStore(Authorization.user?.profilePhoto?.small, "base64", { priority: 32 });
+    const src = photo?.content;
 
     useEffect(() => {
         Authorization.getMe();

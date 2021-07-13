@@ -22,8 +22,10 @@
         "copy-webpack-plugin": "^5.1.0",
         "gh-pages": "^3.2.3",
         "inter-ui": "^3.19.2",
+        "lottie-react": "^2.1.0",
         "mobx": "^6.3.2",
         "mobx-react-lite": "^3.2.0",
+        "pako": "^1.0.11",
         "qrcode.react": "^1.0.1",
         "react": "^17.0.2",
         "react-custom-scrollbars-2": "^4.4.0",
@@ -35,6 +37,7 @@
         "react-router-dom": "^5.2.0",
         "react-scripts": "4.0.3",
         "react-virtual": "^2.7.2",
+        "react-visibility-sensor": "^5.1.1",
         "typescript": "^4.3.5",
         "web-vitals": "^1.1.2",
         "webpack": "4.44.2",
@@ -68,10 +71,12 @@
     },
     "devDependencies": {
         "@types/copy-webpack-plugin": "^8.0.0",
+        "@types/pako": "^1.0.2",
         "@types/qrcode.react": "^1.0.1",
         "@types/react-responsive": "^8.0.2",
         "@types/react-router": "^5.1.15",
         "@types/react-router-dom": "^5.1.7",
+        "@types/react-visibility-sensor": "^5.1.0",
         "@types/webpack": "5.28.0"
     }
 }

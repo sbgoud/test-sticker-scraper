@@ -1,5 +1,6 @@
-import { FC, useContext, useEffect, useRef } from "react";
+import { FC, useContext, useEffect, useRef, useCallback } from "react";
 import { observer } from "mobx-react-lite";
+import { useVirtual } from "react-virtual";
 
 import { Grid } from "@geist-ui/react";
 
@@ -8,8 +9,6 @@ import { StoreContext, List } from "../../components";
 import ChatRow from "./ChatRow";
 
 import styles from "./Chats.module.css";
-import { useCallback } from "react";
-import { useVirtual } from "react-virtual";
 
 let scrollTop = 0;
 

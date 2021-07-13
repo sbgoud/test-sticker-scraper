@@ -16,7 +16,7 @@ interface ChatRowProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 }
 
 const ChatRow: FC<ChatRowProps> = ({ chat, className, ...other }) => {
-    const photo = useFileStore(chat.info?.photo?.small);
+    const photo = useFileStore(chat.info?.photo?.small, "base64");
 
     return (
         <NavLink
@@ -26,7 +26,7 @@ const ChatRow: FC<ChatRowProps> = ({ chat, className, ...other }) => {
             {...other}
         >
             <Grid.Container className={styles.container} alignItems="center" height="100%" width="100%">
-                <UserCard src={photo?.base64} name={chat.info?.title} />
+                <UserCard src={photo?.content} name={chat.info?.title} />
             </Grid.Container>
         </NavLink>
     );

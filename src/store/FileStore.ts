@@ -2,32 +2,42 @@ import { makeAutoObservable } from "mobx";
 
 import { DownloadFileParams, File } from "@airgram/core";
 import RootStore from "./RootStore";
-import { blobToBase64 } from "../utils";
 import { useContext, useEffect, useState } from "react";
 import { StoreContext } from "../components/StoreProvider";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import { UPDATE } from "@airgram/constants";
 import { useLocalObservable } from "mobx-react-lite";
+import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
 
-const cache = new Map<number, [Blob, string]>();
+const cache = new Map<number, any>();
 
-interface IFile {
+type FileFormats = "blob" | "base64" | "text" | "json" | "lotty";
+
+type FileFormat<TFormat extends FileFormats> = TFormat extends "blob"
+    ? Blob
+    : TFormat extends "base64" | "text"
+    ? string
+    : TFormat extends "json" | "lotty"
+    ? object
+    : never;
+
+interface IFile<TFormat extends FileFormats> {
     file?: File;
-    blob?: Blob;
-    base64?: string;
+    content?: FileFormat<TFormat>;
 }
 
 type DownloadParams = Omit<DownloadFileParams, "fileId">;
 
-export default class FileStore implements IFile {
+export default class FileStore<TFormat extends FileFormats> implements IFile<TFormat> {
+    format?: FileFormats = undefined;
     file?: File = undefined;
-    blob?: Blob = undefined;
-    base64?: string = undefined;
+    content?: FileFormat<TFormat> = undefined;
     params?: DownloadParams = undefined;
 
-    constructor(private rootStore: RootStore, file?: File, params?: DownloadParams) {
+    constructor(private rootStore: RootStore, file?: File, format?: FileFormats, params?: DownloadParams) {
         makeAutoObservable(this);
         this.file = file;
+        this.format = format;
         this.params = params;
         this.load();
 
@@ -48,8 +58,9 @@ export default class FileStore implements IFile {
         })
         .build();
 
-    setFile(file?: File, params?: DownloadParams) {
+    setFile(file?: File, format?: FileFormats, params?: DownloadParams) {
         this.file = file;
+        this.format = format;
         this.params = params;
         return this.load();
     }
@@ -63,10 +74,7 @@ export default class FileStore implements IFile {
 
         const chachedValue = cache.get(fileId);
         if (chachedValue) {
-            const [blob, base64] = chachedValue;
-
-            this.blob = blob;
-            this.base64 = base64;
+            this.content = chachedValue;
 
             return;
         }
@@ -80,20 +88,43 @@ export default class FileStore implements IFile {
         }
 
         const blob = file.response.data as unknown as Blob;
-        const base64 = await blobToBase64(blob);
 
-        cache.set(fileId, [blob, base64]);
+        let content: any = null;
+        if (this.format === "blob") {
+            content = blob;
+        }
 
-        this.blob = blob;
-        this.base64 = base64;
+        if (this.format === "base64") {
+            content = await blobToBase64(blob);
+        }
+
+        if (this.format === "text") {
+            content = await blobToText(blob);
+        }
+
+        if (this.format === "json") {
+            content = await blobToJson(blob);
+        }
+
+        if (this.format === "lotty") {
+            content = await blobToLotty(blob);
+        }
+
+        cache.set(fileId, content);
+
+        this.content = content;
     }
 }
 
-export function useFileStore(file?: File, params?: DownloadParams): IFile {
+export function useFileStore<TResult extends FileFormats>(
+    file?: File,
+    format?: TResult,
+    params?: DownloadParams
+): IFile<TResult> {
     const rootStore = useContext(StoreContext);
 
-    const store = useLocalObservable(() => new FileStore(rootStore));
-    const [state, setState] = useState<IFile | undefined>(undefined);
+    const store = useLocalObservable(() => new FileStore<TResult>(rootStore));
+    const [state, setState] = useState<IFile<TResult> | undefined>(undefined);
 
     useEffect(() => {
         return () => {
@@ -104,12 +135,15 @@ export function useFileStore(file?: File, params?: DownloadParams): IFile {
 
     useEffect(() => {
         (async () => {
-            await store.setFile(file, params);
-            const { blob, base64 } = store;
-            setState({ file, blob, base64 });
+            await store.setFile(file, format, params);
+            const { content } = store;
+            setState({ file, content });
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [file, store]);
 
-    return { file, blob: state?.blob ?? store.blob, base64: state?.base64 ?? store.base64 };
+    return {
+        file,
+        content: state?.content ?? store.content,
+    };
 }
