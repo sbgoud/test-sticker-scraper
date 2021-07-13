@@ -4,8 +4,8 @@ const options: AirgramConfig = {
     //useTestDc: true,
     apiId: parseInt(process.env.REACT_APP_APP_ID!),
     apiHash: process.env.REACT_APP_API_HASH,
-    jsLogVerbosityLevel: "info",
-    logVerbosityLevel: 2,
+    jsLogVerbosityLevel: "error",
+    logVerbosityLevel: 0,
     useSecretChats: false,
 };
 

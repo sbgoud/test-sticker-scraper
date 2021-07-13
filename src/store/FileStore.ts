@@ -1,13 +1,14 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, observable, toJS } from "mobx";
 
 import { DownloadFileParams, File } from "@airgram/core";
 import RootStore from "./RootStore";
-import { useContext, useEffect, useState } from "react";
-import { StoreContext } from "../components/StoreProvider";
+import { useEffect, useState } from "react";
+import { store as rootStore } from "../components/StoreProvider";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import { UPDATE } from "@airgram/constants";
-import { useLocalObservable } from "mobx-react-lite";
+
 import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
+import { useLocalObservable, useLocalStore } from "mobx-react-lite";
 
 const cache = new Map<number, any>();
 
@@ -21,21 +22,16 @@ type FileFormat<TFormat extends FileFormats> = TFormat extends "blob"
     ? object
     : never;
 
-interface IFile<TFormat extends FileFormats> {
-    file?: File;
-    content?: FileFormat<TFormat>;
-}
-
 type DownloadParams = Omit<DownloadFileParams, "fileId">;
 
-export default class FileStore<TFormat extends FileFormats> implements IFile<TFormat> {
-    format?: FileFormats = undefined;
-    file?: File = undefined;
+export default class FileStore<TFormat extends FileFormats> {
+    isLoading = false;
+    private format?: FileFormats = undefined;
+    private file?: File = undefined;
     content?: FileFormat<TFormat> = undefined;
-    params?: DownloadParams = undefined;
-
+    private params?: DownloadParams = undefined;
     constructor(private rootStore: RootStore, file?: File, format?: FileFormats, params?: DownloadParams) {
-        makeAutoObservable(this);
+        makeAutoObservable(this, { content: observable.ref });
         this.file = file;
         this.format = format;
         this.params = params;
@@ -51,6 +47,7 @@ export default class FileStore<TFormat extends FileFormats> implements IFile<TFo
     handlers = new HandlersBuilder()
         .add(UPDATE.updateFile, (ctx, next) => {
             if (ctx.update.file.id === this.file?.id) {
+                console.log(UPDATE.updateFile, ctx.update.file.id, ctx.update.file);
                 this.load();
             }
 
@@ -60,59 +57,80 @@ export default class FileStore<TFormat extends FileFormats> implements IFile<TFo
 
     setFile(file?: File, format?: FileFormats, params?: DownloadParams) {
         this.file = file;
-        this.format = format;
+
+        if (this.format !== format) {
+            this.content = undefined;
+            this.format = format;
+        }
+
         this.params = params;
         return this.load();
     }
 
     async load() {
-        if (!this.file) {
+        if (!this.file || this.isLoading) {
             return;
         }
 
-        const fileId = this.file.id;
-
-        const chachedValue = cache.get(fileId);
-        if (chachedValue) {
-            this.content = chachedValue;
-
-            return;
+        if (this.content) {
+            return this.content;
         }
 
-        await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 2, ...this.params });
+        try {
+            this.isLoading = true;
 
-        const file = await this.rootStore.Airgram.api.readFilePart({ fileId });
+            const fileId = this.file.id;
 
-        if (file.response._ !== "filePart") {
-            return;
+            const chachedValue = cache.get(fileId);
+            if (chachedValue) {
+                this.content = chachedValue;
+                return chachedValue;
+            }
+
+            const download = await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 1, ...this.params });
+
+            if (download.response._ === "error") {
+                console.log("downloadFile", fileId, download.response);
+                return;
+            }
+
+            const file = await this.rootStore.Airgram.api.readFilePart({ fileId });
+
+            if (file.response._ === "error") {
+                console.log("readFilePart", fileId, file.response);
+                return;
+            }
+
+            const blob = file.response.data as unknown as Blob;
+
+            let content: any = null;
+            if (this.format === "blob") {
+                content = blob;
+            }
+
+            if (this.format === "base64") {
+                content = await blobToBase64(blob);
+            }
+
+            if (this.format === "text") {
+                content = await blobToText(blob);
+            }
+
+            if (this.format === "json") {
+                content = await blobToJson(blob);
+            }
+
+            if (this.format === "lotty") {
+                content = await blobToLotty(blob);
+            }
+
+            cache.set(fileId, content);
+
+            this.content = content;
+            return content;
+        } finally {
+            this.isLoading = false;
         }
-
-        const blob = file.response.data as unknown as Blob;
-
-        let content: any = null;
-        if (this.format === "blob") {
-            content = blob;
-        }
-
-        if (this.format === "base64") {
-            content = await blobToBase64(blob);
-        }
-
-        if (this.format === "text") {
-            content = await blobToText(blob);
-        }
-
-        if (this.format === "json") {
-            content = await blobToJson(blob);
-        }
-
-        if (this.format === "lotty") {
-            content = await blobToLotty(blob);
-        }
-
-        cache.set(fileId, content);
-
-        this.content = content;
     }
 }
 
@@ -120,11 +138,8 @@ export function useFileStore<TResult extends FileFormats>(
     file?: File,
     format?: TResult,
     params?: DownloadParams
-): IFile<TResult> {
-    const rootStore = useContext(StoreContext);
-
-    const store = useLocalObservable(() => new FileStore<TResult>(rootStore));
-    const [state, setState] = useState<IFile<TResult> | undefined>(undefined);
+): FileFormat<TResult> | undefined {
+    const store = useLocalStore(() => new FileStore<TResult>(rootStore));
 
     useEffect(() => {
         return () => {
@@ -134,16 +149,8 @@ export function useFileStore<TResult extends FileFormats>(
     }, []);
 
     useEffect(() => {
-        (async () => {
-            await store.setFile(file, format, params);
-            const { content } = store;
-            setState({ file, content });
-        })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [file, store]);
+        store.setFile(file, format, params);
+    }, [file, format, params, store]);
 
-    return {
-        file,
-        content: state?.content ?? store.content,
-    };
+    return store.content;
 }

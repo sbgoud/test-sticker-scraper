@@ -11,7 +11,6 @@ const User: FC = () => {
     const { Authorization } = useContext(StoreContext);
 
     const photo = useFileStore(Authorization.user?.profilePhoto?.small, "base64", { priority: 32 });
-    const src = photo?.content;
 
     useEffect(() => {
         Authorization.getMe();
@@ -24,7 +23,7 @@ const User: FC = () => {
 
     return (
         <Grid.Container wrap="nowrap" alignItems="center" xs>
-            <UserCard src={src} name={`${Authorization.user.firstName} ${Authorization.user.lastName}`}>
+            <UserCard src={photo} name={`${Authorization.user.firstName} ${Authorization.user.lastName}`}>
                 {Authorization.user.username}
             </UserCard>
             <div style={{ flex: 1 }} />

@@ -1,7 +1,7 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat as AirgramChat, ChatPosition, Message } from "@airgram/core";
 
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
 
@@ -24,10 +24,8 @@ export default class ChatsStore {
             chat = {};
         }
 
-        runInAction(() => {
-            chat = updater(chat!) ?? chat;
-            this.chats.set(chatId, chat!);
-        });
+        chat = updater(chat!) ?? chat;
+        this.chats.set(chatId, chat!);
     }
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {

@@ -2,7 +2,7 @@ import { MiddlewareFn, UpdateConnectionState } from "@airgram/core";
 import { UPDATE, CONNECTION_STATE } from "@airgram/constants";
 
 import RootStore from "./RootStore";
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 
 export default class ConnectionStore {
     state: CONNECTION_STATE = CONNECTION_STATE.connectionStateWaitingForNetwork;
@@ -17,9 +17,8 @@ export default class ConnectionStore {
         if (ctx._ === UPDATE.updateConnectionState && "update" in ctx) {
             const context = ctx.update as unknown as UpdateConnectionState;
             const state = context.state._ as CONNECTION_STATE;
-            runInAction(() => {
-                this.state = state;
-            });
+
+            this.state = state;
         }
 
         return next();

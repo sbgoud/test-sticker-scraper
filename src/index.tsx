@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import ReactDOM from "react-dom";
 import { HashRouter } from "react-router-dom";
 
@@ -11,13 +10,11 @@ import reportWebVitals from "./reportWebVitals";
 import { StoreProvider } from "./components";
 
 ReactDOM.render(
-    <StrictMode>
-        <StoreProvider>
-            <HashRouter>
-                <App />
-            </HashRouter>
-        </StoreProvider>
-    </StrictMode>,
+    <StoreProvider>
+        <HashRouter>
+            <App />
+        </HashRouter>
+    </StoreProvider>,
     document.getElementById("root")
 );
 

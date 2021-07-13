@@ -15,6 +15,9 @@ import { FiArrowLeft } from "react-icons/fi";
 
 import styles from "./Conversation.module.css";
 
+const PLACEHOLDER_HEIGHT = 1000;
+const MESSAGE_HEIGHT = 348;
+
 interface Props extends RouteComponentProps<{ id: string }> {}
 
 const Conversation: FC<Props> = ({ match }) => {
@@ -42,32 +45,45 @@ const Conversation: FC<Props> = ({ match }) => {
 
     const parentRef = useRef<HTMLElement>();
 
-    const size = useMemo(() => {
-        let result = 0;
+    let size = messages.length;
+    if (store.canLoad) {
+        size++;
+    }
 
-        if (messages) {
-            result = messages.length;
-        }
-
-        if (store.isLoading) {
-            result++;
-        }
-
-        return result;
-    }, [messages, store.isLoading]);
-
-    const estimateSize = useCallback((index) => (store.isLoading && index === 0 ? 40 : 320), [store.isLoading]);
+    const estimateSize = useCallback(
+        (index) => (store.canLoad && index === 0 ? PLACEHOLDER_HEIGHT : MESSAGE_HEIGHT),
+        [store.canLoad]
+    );
 
     const rowVirtualizer = useVirtual({
         size,
         parentRef,
         estimateSize,
+        overscan: 0,
     });
 
-    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement, UIEvent>) => {
-        const target = event.target as HTMLDivElement;
-        console.log("scroll", target.scrollTop);
-    }, []);
+    const loadMessages = useCallback(async () => {
+        if (parentRef.current && parentRef.current.scrollTop < PLACEHOLDER_HEIGHT - 50) {
+            const loaded = await store.load();
+            if (loaded) {
+                parentRef.current!.scrollTop += MESSAGE_HEIGHT * loaded;
+            }
+        }
+    }, [store]);
+
+    useEffect(() => {
+        if (!store.canLoad) {
+            parentRef.current!.scrollTop -= PLACEHOLDER_HEIGHT;
+        }
+    }, [store.canLoad]);
+
+    useEffect(() => {
+        loadMessages();
+    }, [loadMessages, messages.length]);
+
+    const handleScroll = useCallback(() => {
+        loadMessages();
+    }, [loadMessages]);
 
     if (!id) {
         return (
@@ -84,11 +100,11 @@ const Conversation: FC<Props> = ({ match }) => {
                     <Button auto type="abort" iconRight={<FiArrowLeft />} />
                 </Grid>
                 <Grid xs>
-                    <UserCard src={photo.content} name={chat?.title} />
+                    <UserCard src={photo} name={chat?.title} />
                 </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
-                <List ref={parentRef as any} onScroll={handleScroll}>
+                <List ref={parentRef as any} onScrollStop={handleScroll}>
                     <div
                         style={{
                             minHeight: "100%",
@@ -97,9 +113,9 @@ const Conversation: FC<Props> = ({ match }) => {
                             position: "relative",
                         }}
                     >
-                        {rowVirtualizer.virtualItems.map(({ index, size, start, measureRef }) => {
+                        {rowVirtualizer.virtualItems.map(({ index, start, size, measureRef }) => {
                             let realIndex = index;
-                            if (store.isLoading) {
+                            if (store.canLoad) {
                                 realIndex--;
                             }
 
@@ -107,15 +123,16 @@ const Conversation: FC<Props> = ({ match }) => {
                                 position: "absolute",
                                 top: 0,
                                 left: 0,
+                                height: size,
                                 width: "100%",
                                 transform: `translateY(${start}px)`,
                             };
 
                             if (realIndex < 0)
                                 return (
-                                    <Loading key={index} style={style} padding="20px">
-                                        Loading messages
-                                    </Loading>
+                                    <Grid.Container alignItems="flex-end" key={index} style={style}>
+                                        <Loading>Loading messages</Loading>
+                                    </Grid.Container>
                                 );
 
                             const message = messages[realIndex];

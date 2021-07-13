@@ -1,6 +1,6 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat, Message, Messages, MessageSticker } from "@airgram/core";
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
@@ -12,7 +12,7 @@ export interface StickerMessage extends Message {
 }
 
 interface IMessagesStore {
-    offset: number;
+    startMessage: number;
     canLoad: boolean;
     chat?: Chat;
     messages?: StickerMessage[];
@@ -25,7 +25,7 @@ const cache = new Map<number, IMessagesStore>();
 export default class StickerMessagesStore implements IMessagesStore {
     isLoading = false;
     isRestored = false;
-    offset = 0;
+    startMessage = 0;
     canLoad = true;
     chat?: Chat = undefined;
     messages: StickerMessage[] = [];
@@ -51,15 +51,13 @@ export default class StickerMessagesStore implements IMessagesStore {
         .add(UPDATE.updateNewMessage, (ctx, next) => {
             const message = ctx.update.message;
             if (message.chatId === this.chatId && !this.messageIds.has(message.id)) {
-                runInAction(() => {
-                    this.offset++;
+                this.messageIds.set(message.id, true);
 
-                    if (message.content._ === "messageSticker" && !this.stickerIds.has(message.content.sticker.setId)) {
-                        this.messages?.push(message as any);
-                        this.messageIds.set(message.id, true);
-                        this.stickerIds.set(message.content.sticker.setId, true);
-                    }
-                });
+                if (message.content._ === "messageSticker" && !this.stickerIds.has(message.content.sticker.setId)) {
+                    this.messages?.push(message as any);
+                    this.stickerIds.set(message.content.sticker.setId, true);
+                }
+
                 this.save();
             }
             return next();
@@ -75,79 +73,77 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     async load() {
-        if (!this.canLoad) {
+        if (!this.canLoad || this.isLoading) {
             return;
         }
 
-        runInAction(() => {
-            this.isLoading = true;
-        });
+        this.isLoading = true;
 
         try {
             if (!this.chat) {
                 const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
 
                 if (chat.response._ === "chat") {
-                    runInAction(() => {
-                        this.chat = chat.response as Chat;
-                    });
+                    this.chat = chat.response as Chat;
                 }
             }
 
-            const history = await this.rootStore.Airgram.api.getChatHistory({
-                chatId: this.chatId,
-                limit,
-                offset: this.offset,
-            });
-
-            if (history.response._ === "messages") {
-                const messages = history.response as Messages;
-                runInAction(() => {
-                    this.offset += messages.totalCount;
+            while (true) {
+                const history = await this.rootStore.Airgram.api.getChatHistory({
+                    chatId: this.chatId,
+                    limit,
+                    fromMessageId: this.startMessage,
                 });
 
-                if (messages.totalCount === 0) {
-                    runInAction(() => {
+                if (history.response._ === "messages") {
+                    const messages = history.response as Messages;
+
+                    if (messages.totalCount === 0) {
                         this.canLoad = false;
-                    });
-                    return;
-                }
+                        break;
+                    }
 
-                const stickerMessages = Array.from(
-                    messages
-                        .messages!.reduce((acc, message) => {
-                            if (
-                                message.content._ === "messageSticker" &&
-                                !acc.has(message.content.sticker.setId) &&
-                                !this.stickerIds.has(message.content.sticker.setId)
-                            ) {
-                                acc.set(message.content.sticker.setId, message as any);
-                            }
-                            return acc;
-                        }, new Map<string, StickerMessage>())
-                        .values()
-                ).filter((x) => !this.messageIds.has(x.id));
+                    const lastMessage = messages.messages![messages.messages!.length - 1];
+                    this.startMessage = lastMessage.id;
 
-                runInAction(() => {
+                    const stickerMessages = Array.from(
+                        messages
+                            .messages!.reduce((acc, message) => {
+                                if (
+                                    message.content._ === "messageSticker" &&
+                                    !acc.has(message.content.sticker.setId) &&
+                                    !this.stickerIds.has(message.content.sticker.setId)
+                                ) {
+                                    acc.set(message.content.sticker.setId, message as any);
+                                }
+                                return acc;
+                            }, new Map<string, StickerMessage>())
+                            .values()
+                    ).filter((x) => !this.messageIds.has(x.id));
+
                     for (const message of stickerMessages) {
                         const content = message.content as MessageSticker;
+
                         this.messageIds.set(message.id, true);
                         this.stickerIds.set(content.sticker.setId, true);
+                        this.messages!.unshift(message);
                     }
-                    this.messages!.unshift(...stickerMessages);
-                });
 
-                this.save();
+                    if (stickerMessages.length) {
+                        return stickerMessages.length;
+                    }
+                }
             }
+        } catch (error) {
+            console.log(error);
         } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            });
+            this.save();
+            this.isLoading = false;
         }
     }
 
     save() {
-        const { chat, messages, messageIds, stickerIds, offset, canLoad } = this;
-        cache.set(this.chatId, { chat, messages, messageIds, stickerIds, offset, canLoad });
+        const { chat, messages, messageIds, stickerIds, startMessage, canLoad } = this;
+        cache.set(this.chatId, { chat, messages, messageIds, stickerIds, startMessage, canLoad });
     }
 }

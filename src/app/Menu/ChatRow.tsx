@@ -1,7 +1,6 @@
-import { FC } from "react";
+import { FC, memo } from "react";
 import cx from "classnames";
 import { NavLink } from "react-router-dom";
-import { observer } from "mobx-react-lite";
 
 import { Grid } from "@geist-ui/react";
 
@@ -26,10 +25,10 @@ const ChatRow: FC<ChatRowProps> = ({ chat, className, ...other }) => {
             {...other}
         >
             <Grid.Container className={styles.container} alignItems="center" height="100%" width="100%">
-                <UserCard src={photo?.content} name={chat.info?.title} />
+                <UserCard src={photo} name={chat.info?.title} />
             </Grid.Container>
         </NavLink>
     );
 };
 
-export default observer(ChatRow);
+export default memo(ChatRow);
