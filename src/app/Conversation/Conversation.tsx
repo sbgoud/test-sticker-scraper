@@ -1,4 +1,4 @@
-import { FC, useContext, useState, useEffect, useRef, useCallback, useMemo, CSSProperties } from "react";
+import { FC, useContext, useState, useEffect, useRef, useCallback, CSSProperties } from "react";
 import { RouteComponentProps } from "react-router";
 import { observer } from "mobx-react-lite";
 import { useVirtual } from "react-virtual";
@@ -14,9 +14,30 @@ import Message from "./Message";
 import { FiArrowLeft } from "react-icons/fi";
 
 import styles from "./Conversation.module.css";
+import memoize from "fast-memoize";
 
 const PLACEHOLDER_HEIGHT = 1000;
 const MESSAGE_HEIGHT = 348;
+
+const createContainerStyle = memoize(
+    (totalSize): CSSProperties => ({
+        minHeight: "100%",
+        height: `${totalSize}px`,
+        width: "100%",
+        position: "relative",
+    })
+);
+
+const createMessageStyles = memoize(
+    (size, start): CSSProperties => ({
+        position: "absolute",
+        top: start,
+        left: 0,
+        height: size,
+        width: "100%",
+        //transform: `translateY(${start}px)`,
+    })
+);
 
 interface Props extends RouteComponentProps<{ id: string }> {}
 
@@ -59,7 +80,6 @@ const Conversation: FC<Props> = ({ match }) => {
         size,
         parentRef,
         estimateSize,
-        overscan: 0,
     });
 
     const loadMessages = useCallback(async () => {
@@ -93,6 +113,8 @@ const Conversation: FC<Props> = ({ match }) => {
         );
     }
 
+    const style = createContainerStyle(rowVirtualizer.totalSize);
+
     return (
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
@@ -104,29 +126,15 @@ const Conversation: FC<Props> = ({ match }) => {
                 </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
-                <List ref={parentRef as any} onScrollStop={handleScroll}>
-                    <div
-                        style={{
-                            minHeight: "100%",
-                            height: `${rowVirtualizer.totalSize}px`,
-                            width: "100%",
-                            position: "relative",
-                        }}
-                    >
-                        {rowVirtualizer.virtualItems.map(({ index, start, size, measureRef }) => {
+                <List ref={parentRef as any} onScroll={handleScroll}>
+                    <div style={style}>
+                        {rowVirtualizer.virtualItems.map(({ index, start, size }) => {
                             let realIndex = index;
                             if (store.canLoad) {
                                 realIndex--;
                             }
 
-                            const style: CSSProperties = {
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                height: size,
-                                width: "100%",
-                                transform: `translateY(${start}px)`,
-                            };
+                            const style = createMessageStyles(size, start);
 
                             if (realIndex < 0)
                                 return (
@@ -137,7 +145,7 @@ const Conversation: FC<Props> = ({ match }) => {
 
                             const message = messages[realIndex];
 
-                            return <Message ref={measureRef} key={message.id} style={style} message={message} />;
+                            return <Message key={message.id} style={style} message={message} />;
                         })}
                     </div>
                 </List>

@@ -1,14 +1,14 @@
-import { makeAutoObservable, observable, toJS } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 
 import { DownloadFileParams, File } from "@airgram/core";
 import RootStore from "./RootStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { store as rootStore } from "../components/StoreProvider";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import { UPDATE } from "@airgram/constants";
 
 import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
-import { useLocalObservable, useLocalStore } from "mobx-react-lite";
+import { useLocalStore } from "mobx-react-lite";
 
 const cache = new Map<number, any>();
 
@@ -47,7 +47,6 @@ export default class FileStore<TFormat extends FileFormats> {
     handlers = new HandlersBuilder()
         .add(UPDATE.updateFile, (ctx, next) => {
             if (ctx.update.file.id === this.file?.id) {
-                console.log(UPDATE.updateFile, ctx.update.file.id, ctx.update.file);
                 this.load();
             }
 
@@ -86,6 +85,8 @@ export default class FileStore<TFormat extends FileFormats> {
                 this.content = chachedValue;
                 return chachedValue;
             }
+
+            console.log("load", fileId);
 
             const download = await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 1, ...this.params });
 
