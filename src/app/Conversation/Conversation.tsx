@@ -9,6 +9,7 @@ import { CenterLayout, List, StoreContext, Toolbar, UserCard } from "../../compo
 import StickerMessagesStore from "../../store/StickerMessagesStore";
 import { useFileStore } from "../../store/FileStore";
 
+import Loader from "./Loader";
 import Message from "./Message";
 
 import { FiArrowLeft } from "react-icons/fi";
@@ -17,7 +18,7 @@ import styles from "./Conversation.module.css";
 import memoize from "fast-memoize";
 
 const PLACEHOLDER_HEIGHT = 1000;
-const MESSAGE_HEIGHT = 348;
+const MESSAGE_HEIGHT = 420;
 
 const createContainerStyle = memoize(
     (totalSize): CSSProperties => ({
@@ -35,6 +36,7 @@ const createMessageStyles = memoize(
         left: 0,
         height: size,
         width: "100%",
+        padding: 32,
         //transform: `translateY(${start}px)`,
     })
 );
@@ -83,7 +85,7 @@ const Conversation: FC<Props> = ({ match }) => {
     });
 
     const loadMessages = useCallback(async () => {
-        if (parentRef.current && parentRef.current.scrollTop < PLACEHOLDER_HEIGHT - 50) {
+        if (parentRef.current && parentRef.current.scrollTop < PLACEHOLDER_HEIGHT - 200) {
             const loaded = await store.load();
             if (loaded) {
                 parentRef.current!.scrollTop += MESSAGE_HEIGHT * loaded;
@@ -138,8 +140,10 @@ const Conversation: FC<Props> = ({ match }) => {
 
                             if (realIndex < 0)
                                 return (
-                                    <Grid.Container alignItems="flex-end" key={index} style={style}>
-                                        <Loading>Loading messages</Loading>
+                                    <Grid.Container gap={0} alignItems="flex-end" key={index} style={style}>
+                                        <Grid xs justify="center" padding="50px">
+                                            <Loader store={store} />
+                                        </Grid>
                                     </Grid.Container>
                                 );
 

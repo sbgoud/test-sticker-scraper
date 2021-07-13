@@ -32,6 +32,10 @@ export default class StickerMessagesStore implements IMessagesStore {
     messageIds = new Map<number, boolean>();
     stickerIds = new Map<string, boolean>();
 
+    processed: number = 0;
+    total: number = 0;
+    batch: number = 0;
+
     constructor(private rootStore: RootStore, private chatId: number) {
         if (cache.has(chatId)) {
             const values = cache.get(chatId);
@@ -77,6 +81,9 @@ export default class StickerMessagesStore implements IMessagesStore {
             return;
         }
 
+        this.processed = 0;
+        this.total = 0;
+        this.batch = 0;
         this.isLoading = true;
 
         try {
@@ -89,6 +96,8 @@ export default class StickerMessagesStore implements IMessagesStore {
             }
 
             while (true) {
+                this.batch++;
+
                 const history = await this.rootStore.Airgram.api.getChatHistory({
                     chatId: this.chatId,
                     limit,
@@ -102,6 +111,8 @@ export default class StickerMessagesStore implements IMessagesStore {
                         this.canLoad = false;
                         break;
                     }
+
+                    this.total += messages.totalCount;
 
                     const lastMessage = messages.messages![messages.messages!.length - 1];
                     this.startMessage = lastMessage.id;
@@ -129,7 +140,10 @@ export default class StickerMessagesStore implements IMessagesStore {
                         this.messages!.unshift(message);
                     }
 
+                    this.processed += messages.totalCount;
+
                     if (stickerMessages.length) {
+                        console.log("loaded", stickerMessages.length);
                         return stickerMessages.length;
                     }
                 }

@@ -86,19 +86,15 @@ export default class FileStore<TFormat extends FileFormats> {
                 return chachedValue;
             }
 
-            console.log("load", fileId);
-
             const download = await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 1, ...this.params });
 
             if (download.response._ === "error") {
-                console.log("downloadFile", fileId, download.response);
                 return;
             }
 
             const file = await this.rootStore.Airgram.api.readFilePart({ fileId });
 
             if (file.response._ === "error") {
-                console.log("readFilePart", fileId, file.response);
                 return;
             }
 

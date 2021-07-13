@@ -1,3 +1,9 @@
+.container {
+    flex: 1;
+    padding: none;
+    overflow: hidden;
+}
+
 .sticker {
     max-height: 320px;
     max-width: 320px;

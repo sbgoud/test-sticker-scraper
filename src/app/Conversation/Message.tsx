@@ -20,13 +20,13 @@ const MessageContent = observer(({ message }: MessageContentProps) => {
     return (
         <>
             <Grid>{message.sender._}</Grid>
-            <Grid className={styles.sticker}>
+            <Grid.Container className={styles.container} alignItems="center">
                 {sticker.isAnimated ? (
                     <Lottie renderer="svg" className={styles.sticker} animationData={file as any} />
                 ) : (
                     <img className={styles.sticker} alt="" src={file as any} />
                 )}
-            </Grid>
+            </Grid.Container>
         </>
     );
 });
@@ -35,7 +35,7 @@ interface MessageProps extends GridContainerProps, MessageContentProps {}
 
 const Message = ({ message, ...other }: MessageProps) => {
     return (
-        <Grid.Container gap={0} direction="column" {...other}>
+        <Grid.Container gap={1} direction="column" {...other}>
             <MessageContent message={message} />
         </Grid.Container>
     );
