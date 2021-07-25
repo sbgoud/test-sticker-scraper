@@ -2,7 +2,7 @@ import { AuthorizationStateUnion, User } from "@airgram/core";
 import { UPDATE, AUTHORIZATION_STATE } from "@airgram/constants";
 
 import RootStore from "./RootStore";
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, observable, runInAction } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 
 export default class AuthorizationStore {
@@ -12,6 +12,7 @@ export default class AuthorizationStore {
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
+            user: observable.ref,
             handlers: false,
         });
     }
@@ -30,7 +31,9 @@ export default class AuthorizationStore {
                 return;
             }
 
-            this.state = state;
+            runInAction(() => {
+                this.state = state;
+            });
         })
         .build();
 

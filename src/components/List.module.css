@@ -1,0 +1,4 @@
+.thumb {
+    background-color: var(--palette-foreground);
+    border-radius: 4px;
+}

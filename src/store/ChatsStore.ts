@@ -1,7 +1,7 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat as AirgramChat, ChatPosition, Message } from "@airgram/core";
 
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
 
@@ -12,10 +12,11 @@ export interface Chat {
 }
 
 export default class ChatsStore {
+    offsetOrder = "9223372036854775807";
     chats = new Map<number, Chat>();
 
     constructor(private rootStore: RootStore) {
-        makeAutoObservable(this, { handlers: false });
+        makeAutoObservable(this, { chats: observable.shallow, handlers: false });
     }
 
     updateChat(chatId: number, updater: (chat: Chat) => Chat | void) {
@@ -27,6 +28,7 @@ export default class ChatsStore {
         chat = updater(chat!) ?? chat;
         this.chats.set(chatId, chat!);
     }
+
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {
             this.updateChat(ctx.update.chat.id, (chat) => {
@@ -60,19 +62,17 @@ export default class ChatsStore {
         .build();
 
     load() {
-        let offsetOrder = "9223372036854775807";
-
         if (this.chatsList.length) {
             const order = this.chatsList[this.chatsList.length - 1].position?.order;
             if (order) {
-                offsetOrder = order;
+                this.offsetOrder = order;
             }
         }
 
         this.rootStore.Airgram.api.getChats({
             chatList: { _: "chatListMain" },
             limit: 10,
-            offsetOrder,
+            offsetOrder: this.offsetOrder,
         });
     }
 

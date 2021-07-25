@@ -17,11 +17,6 @@ const Chats: FC = () => {
 
     const itemData = Chats.chatsList;
 
-    useEffect(() => {
-        Chats.load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const parentRef = useRef<HTMLElement>();
 
     const rowVirtualizer = useVirtual({

@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { GeistProvider, CssBaseline, Page } from "@geist-ui/react";
 
@@ -8,7 +8,12 @@ import Root from "./app/Root";
 import Footer from "./app/Footer";
 
 function App() {
-    const { Theme } = useContext(StoreContext);
+    const { Theme, Chats } = useContext(StoreContext);
+
+    useEffect(() => {
+        Chats.load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <GeistProvider themeType={Theme.currentTheme}>

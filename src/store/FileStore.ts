@@ -8,7 +8,7 @@ import HandlersBuilder from "../utils/HandlersBuilder";
 import { UPDATE } from "@airgram/constants";
 
 import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
-import { useLocalStore } from "mobx-react-lite";
+import { useLocalObservable } from "mobx-react-lite";
 
 const cache = new Map<number, any>();
 
@@ -136,7 +136,7 @@ export function useFileStore<TResult extends FileFormats>(
     format?: TResult,
     params?: DownloadParams
 ): FileFormat<TResult> | undefined {
-    const store = useLocalStore(() => new FileStore<TResult>(rootStore));
+    const store = useLocalObservable(() => new FileStore<TResult>(rootStore));
 
     useEffect(() => {
         return () => {

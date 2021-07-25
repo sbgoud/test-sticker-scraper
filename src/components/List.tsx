@@ -1,5 +1,12 @@
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback, FC, HTMLProps } from "react";
+import cx from "classnames";
 import Scrollbars, { ScrollbarProps } from "react-custom-scrollbars-2";
+
+import styles from "./List.module.css";
+
+const renderThumb: FC<HTMLProps<HTMLDivElement>> = ({ className, ...props }) => {
+    return <div className={cx(className, styles.thumb)} {...props} />;
+};
 
 export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...other }, ref) => {
     const refSetter = useCallback((scrollbarsRef: any) => {
@@ -14,7 +21,13 @@ export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, 
     }, []);
 
     return (
-        <Scrollbars ref={refSetter} style={{ ...style }} {...other}>
+        <Scrollbars
+            ref={refSetter}
+            style={{ ...style }}
+            renderThumbHorizontal={renderThumb}
+            renderThumbVertical={renderThumb}
+            {...other}
+        >
             {children}
         </Scrollbars>
     );

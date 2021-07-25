@@ -1,44 +1,44 @@
-import { useMemo } from "react";
-import Lottie from "lottie-react";
-
-import { Grid, GridContainerProps } from "@geist-ui/react";
+import { useContext } from "react";
+import { LinkProps, NavLink } from "react-router-dom";
+import { observer, useLocalObservable } from "mobx-react-lite";
+import { Grid, Text } from "@geist-ui/react";
 
 import { StickerMessage } from "../../store/StickerMessagesStore";
-import { useFileStore } from "../../store/FileStore";
+import StickerSetStore from "../../store/StickerSetStore";
 
 import styles from "./Message.module.css";
-import { observer } from "mobx-react-lite";
 
-interface MessageContentProps {
+import { Sticker, StoreContext } from "../../components";
+import { useEffect } from "react";
+
+interface MessageProps extends Omit<LinkProps, "to"> {
     message: StickerMessage;
 }
 
-const MessageContent = observer(({ message }: MessageContentProps) => {
-    const sticker = message.content.sticker;
-    const file = useFileStore(sticker.sticker, sticker.isAnimated ? "lotty" : "base64");
-
-    return (
-        <>
-            <Grid>{message.sender._}</Grid>
-            <Grid.Container className={styles.container} alignItems="center">
-                {sticker.isAnimated ? (
-                    <Lottie renderer="svg" className={styles.sticker} animationData={file as any} />
-                ) : (
-                    <img className={styles.sticker} alt="" src={file as any} />
-                )}
-            </Grid.Container>
-        </>
-    );
-});
-
-interface MessageProps extends GridContainerProps, MessageContentProps {}
-
 const Message = ({ message, ...other }: MessageProps) => {
+    const sticker = message.content.sticker;
+    const rootStore = useContext(StoreContext);
+
+    const state = useLocalObservable(() => new StickerSetStore(rootStore, sticker.setId));
+
+    useEffect(() => {
+        state.load();
+    }, [state]);
+
     return (
-        <Grid.Container gap={1} direction="column" {...other}>
-            <MessageContent message={message} />
-        </Grid.Container>
+        <NavLink className={styles.root} to={`/set/${sticker.setId}`} {...other}>
+            <Grid.Container gap={1} direction="column">
+                <Grid>
+                    <Text b type="secondary">
+                        {state.set?.title}
+                    </Text>
+                </Grid>
+                <Grid.Container className={styles.container} alignItems="center">
+                    <Sticker sticker={sticker} />
+                </Grid.Container>
+            </Grid.Container>
+        </NavLink>
     );
 };
 
-export default Message;
+export default observer(Message);

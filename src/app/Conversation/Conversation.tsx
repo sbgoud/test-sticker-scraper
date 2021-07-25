@@ -1,9 +1,9 @@
 import { FC, useContext, useState, useEffect, useRef, useCallback, CSSProperties } from "react";
-import { RouteComponentProps } from "react-router";
+import { RouteComponentProps, useHistory } from "react-router";
 import { observer } from "mobx-react-lite";
 import { useVirtual } from "react-virtual";
 
-import { Button, Grid, Loading, Text } from "@geist-ui/react";
+import { Button, Grid, Text } from "@geist-ui/react";
 
 import { CenterLayout, List, StoreContext, Toolbar, UserCard } from "../../components";
 import StickerMessagesStore from "../../store/StickerMessagesStore";
@@ -19,6 +19,8 @@ import memoize from "fast-memoize";
 
 const PLACEHOLDER_HEIGHT = 1000;
 const MESSAGE_HEIGHT = 420;
+
+let scrollTop = new Map<number, number>();
 
 const createContainerStyle = memoize(
     (totalSize): CSSProperties => ({
@@ -47,6 +49,8 @@ const Conversation: FC<Props> = ({ match }) => {
     const id = match.params.id;
     const chatId = parseInt(id);
 
+    const history = useHistory();
+
     const rootStore = useContext(StoreContext);
     const { Chats } = rootStore;
     const [store] = useState(() => new StickerMessagesStore(rootStore, chatId));
@@ -55,16 +59,6 @@ const Conversation: FC<Props> = ({ match }) => {
     const messages = store.messages;
 
     const photo = useFileStore(chat?.photo?.small, "base64");
-
-    useEffect(() => {
-        if (Chats.chats.has(chatId)) {
-            store.init();
-        }
-
-        return () => {
-            store.dispose();
-        };
-    }, [Chats.chats, chatId, store]);
 
     const parentRef = useRef<HTMLElement>();
 
@@ -78,20 +72,52 @@ const Conversation: FC<Props> = ({ match }) => {
         [store.canLoad]
     );
 
-    const rowVirtualizer = useVirtual({
+    const { virtualItems, totalSize, scrollToOffset } = useVirtual({
         size,
         parentRef,
         estimateSize,
     });
 
-    const loadMessages = useCallback(async () => {
+    const scrollView = useCallback(
+        (count?: number) => {
+            if (parentRef.current && count) {
+                const offset = MESSAGE_HEIGHT * count;
+                console.log("scroll", count, parentRef.current!.scrollTop, offset);
+                parentRef.current!.scrollTop += offset;
+                scrollToOffset(parentRef.current!.scrollTop);
+            }
+        },
+        [scrollToOffset]
+    );
+
+    useEffect(() => {
+        if (scrollTop.has(chatId)) {
+            scrollToOffset(scrollTop.get(chatId) ?? 0);
+        } else {
+            scrollView(store.messages.length);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (Chats.chats.has(chatId)) {
+            (async () => {
+                const loaded = await store.init();
+                scrollView(loaded);
+            })();
+        }
+
+        return () => {
+            store.dispose();
+        };
+    }, [Chats.chats, chatId, scrollView, store]);
+
+    const tryLoadMessages = useCallback(async () => {
         if (parentRef.current && parentRef.current.scrollTop < PLACEHOLDER_HEIGHT - 200) {
             const loaded = await store.load();
-            if (loaded) {
-                parentRef.current!.scrollTop += MESSAGE_HEIGHT * loaded;
-            }
+            scrollView(loaded);
         }
-    }, [store]);
+    }, [scrollView, store]);
 
     useEffect(() => {
         if (!store.canLoad) {
@@ -100,12 +126,17 @@ const Conversation: FC<Props> = ({ match }) => {
     }, [store.canLoad]);
 
     useEffect(() => {
-        loadMessages();
-    }, [loadMessages, messages.length]);
+        tryLoadMessages();
+    }, [tryLoadMessages, messages.length]);
 
-    const handleScroll = useCallback(() => {
-        loadMessages();
-    }, [loadMessages]);
+    const handleScroll = useCallback(
+        (event: React.UIEvent<HTMLDivElement, UIEvent>) => {
+            tryLoadMessages();
+            const target = event.target as HTMLDivElement;
+            scrollTop.set(chatId, target.scrollTop);
+        },
+        [chatId, tryLoadMessages]
+    );
 
     if (!id) {
         return (
@@ -115,14 +146,18 @@ const Conversation: FC<Props> = ({ match }) => {
         );
     }
 
-    const style = createContainerStyle(rowVirtualizer.totalSize);
+    const style = createContainerStyle(totalSize);
 
     return (
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
-                <Grid sm md={0}>
-                    <Button auto type="abort" iconRight={<FiArrowLeft />} />
-                </Grid>
+                {history.length ? (
+                    <Grid md={0}>
+                        <Button auto type="abort" iconRight={<FiArrowLeft />} onClick={history.goBack} />
+                    </Grid>
+                ) : (
+                    false
+                )}
                 <Grid xs>
                     <UserCard src={photo} name={chat?.title} />
                 </Grid>
@@ -130,7 +165,7 @@ const Conversation: FC<Props> = ({ match }) => {
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
                 <List ref={parentRef as any} onScroll={handleScroll}>
                     <div style={style}>
-                        {rowVirtualizer.virtualItems.map(({ index, start, size }) => {
+                        {virtualItems.map(({ index, start, size }) => {
                             let realIndex = index;
                             if (store.canLoad) {
                                 realIndex--;

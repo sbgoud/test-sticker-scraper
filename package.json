@@ -18,6 +18,14 @@
         "@types/react": "^17.0.13",
         "@types/react-dom": "^17.0.8",
         "@types/testing-library__jest-dom": "^5.14.0",
+        "@types/copy-webpack-plugin": "^8.0.0",
+        "@types/pako": "^1.0.2",
+        "@types/qrcode.react": "^1.0.1",
+        "@types/react-responsive": "^8.0.2",
+        "@types/react-router": "^5.1.15",
+        "@types/react-router-dom": "^5.1.7",
+        "@types/react-visibility-sensor": "^5.1.0",
+        "@types/webpack": "5.28.0",
         "classnames": "^2.3.1",
         "copy-webpack-plugin": "^5.1.0",
         "fast-memoize": "^2.5.2",
@@ -34,7 +42,6 @@
         "react-dom": "^17.0.2",
         "react-hook-form": "^7.10.0",
         "react-icons": "^4.2.0",
-        "react-responsive": "^8.2.0",
         "react-router": "^5.2.0",
         "react-router-dom": "^5.2.0",
         "react-scripts": "4.0.3",
@@ -70,15 +77,5 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
-    },
-    "devDependencies": {
-        "@types/copy-webpack-plugin": "^8.0.0",
-        "@types/pako": "^1.0.2",
-        "@types/qrcode.react": "^1.0.1",
-        "@types/react-responsive": "^8.0.2",
-        "@types/react-router": "^5.1.15",
-        "@types/react-router-dom": "^5.1.7",
-        "@types/react-visibility-sensor": "^5.1.0",
-        "@types/webpack": "5.28.0"
     }
 }

@@ -4,6 +4,7 @@ import { Grid, useMediaQuery } from "@geist-ui/react";
 
 import Menu from "./Menu/Menu";
 import Conversation from "./Conversation/Conversation";
+import Set from "./Set/Set";
 
 import styles from "./Root.module.css";
 
@@ -16,6 +17,7 @@ export default function Root() {
                 <Switch>
                     <Route path="/chats" component={Menu} />
                     <Route path="/conversation/:id" component={Conversation} />
+                    <Route path="/set/:id" render={(props) => <Set {...props} />} />
                     <Redirect to="chats" />
                 </Switch>
             ) : (
@@ -29,6 +31,7 @@ export default function Root() {
                                 path="/conversation/:id?"
                                 render={(props) => <Conversation key={props.match.params.id} {...(props as any)} />}
                             />
+                            <Route path="/set/:id" render={(props) => <Set key={props.match.params.id} {...props} />} />
                             <Redirect to="conversation" />
                         </Switch>
                     </Grid>

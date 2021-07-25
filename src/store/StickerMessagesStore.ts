@@ -1,6 +1,6 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat, Message, Messages, MessageSticker } from "@airgram/core";
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
@@ -43,7 +43,15 @@ export default class StickerMessagesStore implements IMessagesStore {
             this.isRestored = true;
         }
 
-        makeAutoObservable(this, { dispose: false, handlers: false });
+        makeAutoObservable(this, {
+            chat: observable.ref,
+            messages: observable.shallow,
+            messageIds: observable.shallow,
+            stickerIds: observable.shallow,
+            dispose: false,
+            handlers: false,
+        });
+
         rootStore.events.addListener(RootStore.eventName, this.handlers);
     }
 
@@ -52,6 +60,11 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     handlers = new HandlersBuilder()
+        .add(UPDATE.updateNewChat, (ctx, next) => {
+            this.load();
+
+            return next();
+        })
         .add(UPDATE.updateNewMessage, (ctx, next) => {
             const message = ctx.update.message;
             if (message.chatId === this.chatId && !this.messageIds.has(message.id)) {
@@ -92,6 +105,8 @@ export default class StickerMessagesStore implements IMessagesStore {
 
                 if (chat.response._ === "chat") {
                     this.chat = chat.response as Chat;
+                } else {
+                    return;
                 }
             }
 
@@ -142,10 +157,14 @@ export default class StickerMessagesStore implements IMessagesStore {
 
                     this.processed += messages.totalCount;
 
+                    this.save();
+
                     if (stickerMessages.length) {
                         console.log("loaded", stickerMessages.length);
                         return stickerMessages.length;
                     }
+                } else {
+                    return;
                 }
             }
         } catch (error) {
