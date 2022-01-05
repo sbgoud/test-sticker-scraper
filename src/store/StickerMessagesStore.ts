@@ -24,17 +24,31 @@ const cache = new Map<number, IMessagesStore>();
 
 export default class StickerMessagesStore implements IMessagesStore {
     isLoading = false;
+    setLoading(value: boolean) {
+        this.isLoading = value;
+    }
     isRestored = false;
     startMessage = 0;
     canLoad = true;
     chat?: Chat = undefined;
     messages: StickerMessage[] = [];
+    insertMessage(message: StickerMessage) {
+        this.messages.unshift(message);
+    }
+    addMessage(message: StickerMessage) {
+        this.messages.push(message);
+    }
     messageIds = new Map<number, boolean>();
     stickerIds = new Map<string, boolean>();
 
     processed: number = 0;
     total: number = 0;
     batch: number = 0;
+    setLoadingProgress(processed: number, total: number, batch: number) {
+        this.processed = processed;
+        this.total = total;
+        this.batch = batch;
+    }
 
     constructor(private rootStore: RootStore, private chatId: number) {
         if (cache.has(chatId)) {
@@ -71,7 +85,7 @@ export default class StickerMessagesStore implements IMessagesStore {
                 this.messageIds.set(message.id, true);
 
                 if (message.content._ === "messageSticker" && !this.stickerIds.has(message.content.sticker.setId)) {
-                    this.messages?.push(message as any);
+                    this.addMessage(message as unknown as StickerMessage);
                     this.stickerIds.set(message.content.sticker.setId, true);
                 }
 
@@ -94,14 +108,14 @@ export default class StickerMessagesStore implements IMessagesStore {
             return;
         }
 
-        this.processed = 0;
-        this.total = 0;
-        this.batch = 0;
-        this.isLoading = true;
+        this.setLoadingProgress(0, 0, 0);
+        this.setLoading(true);
 
         try {
             if (!this.chat) {
+                console.log(this.chatId, "get chat");
                 const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
+                console.log(this.chatId, "got chat");
 
                 if (chat.response._ === "chat") {
                     this.chat = chat.response as Chat;
@@ -111,13 +125,14 @@ export default class StickerMessagesStore implements IMessagesStore {
             }
 
             while (true) {
-                this.batch++;
-
+                console.log(this.chatId, "request history");
                 const history = await this.rootStore.Airgram.api.getChatHistory({
                     chatId: this.chatId,
                     limit,
                     fromMessageId: this.startMessage,
                 });
+
+                console.log(this.chatId, "got history");
 
                 if (history.response._ === "messages") {
                     const messages = history.response as Messages;
@@ -126,8 +141,6 @@ export default class StickerMessagesStore implements IMessagesStore {
                         this.canLoad = false;
                         break;
                     }
-
-                    this.total += messages.totalCount;
 
                     const lastMessage = messages.messages![messages.messages!.length - 1];
                     this.startMessage = lastMessage.id;
@@ -152,10 +165,14 @@ export default class StickerMessagesStore implements IMessagesStore {
 
                         this.messageIds.set(message.id, true);
                         this.stickerIds.set(content.sticker.setId, true);
-                        this.messages!.unshift(message);
+                        this.insertMessage(message);
                     }
 
-                    this.processed += messages.totalCount;
+                    this.setLoadingProgress(
+                        this.processed + messages.totalCount,
+                        this.total + messages.totalCount,
+                        this.batch + 1
+                    );
 
                     this.save();
 
@@ -171,7 +188,7 @@ export default class StickerMessagesStore implements IMessagesStore {
             console.log(error);
         } finally {
             this.save();
-            this.isLoading = false;
+            this.setLoading(false);
         }
     }
 

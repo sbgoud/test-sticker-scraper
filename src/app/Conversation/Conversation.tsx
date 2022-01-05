@@ -80,6 +80,7 @@ const Conversation: FC<Props> = ({ match }) => {
 
     const scrollView = useCallback(
         (count?: number) => {
+            console.log("try scroll", count);
             if (parentRef.current && count) {
                 const offset = MESSAGE_HEIGHT * count;
                 console.log("scroll", count, parentRef.current!.scrollTop, offset);

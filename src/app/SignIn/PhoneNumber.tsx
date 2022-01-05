@@ -30,7 +30,7 @@ const PhoneNumber = () => {
                     throw result.response._;
                 }
             } catch (error) {
-                setError("phoneNumber", error);
+                setError("phoneNumber", { message: error as string });
             } finally {
                 setLock(false);
             }

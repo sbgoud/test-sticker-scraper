@@ -27,7 +27,7 @@ const Code = () => {
                     throw result.response._;
                 }
             } catch (error) {
-                setError("code", error);
+                setError("code", { message: error as string });
             }
         },
         [Authorization, setError]

@@ -72,7 +72,6 @@ export default class ChatsStore {
         this.rootStore.Airgram.api.getChats({
             chatList: { _: "chatListMain" },
             limit: 10,
-            offsetOrder: this.offsetOrder,
         });
     }
 

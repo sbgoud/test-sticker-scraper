@@ -2,7 +2,7 @@ import { Airgram, Composer, MiddlewareFn } from "@airgram/web";
 import { EventEmitter } from "events";
 import { makeAutoObservable } from "mobx";
 
-import createAirgram from "./Airgram";
+import { AirgramFactory } from "./Airgram";
 
 import AuthorizationStore from "./AuthorizationStore";
 import ChatsStore from "./ChatsStore";
@@ -11,11 +11,13 @@ import ThemeStore from "./ThemeStore";
 
 export type EventPayload = Parameters<MiddlewareFn>;
 
+const airgramFactory = new AirgramFactory();
+
 export default class RootStore {
     static eventName = "action";
     events = new EventEmitter();
     private emit: MiddlewareFn = (ctx, next) => {
-        //console.log(ctx);
+        console.log(ctx);
         const listeners = (this.events.listeners(RootStore.eventName) ?? []) as MiddlewareFn[];
         return Composer.compose(listeners)(ctx, next);
     };
@@ -31,7 +33,7 @@ export default class RootStore {
     }
 
     async resetAirgram() {
-        this.Airgram = await createAirgram();
+        this.Airgram = await airgramFactory.makeAsync();
         this.Airgram.use(this.Authorization.handlers, this.Connection, this.Chats.handlers, this.emit);
     }
 }

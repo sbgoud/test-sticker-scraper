@@ -34,7 +34,7 @@ const Password = () => {
                     throw result.response._;
                 }
             } catch (error) {
-                setError("password", error);
+                setError("password", { message: error as string });
             } finally {
                 setLock(false);
             }

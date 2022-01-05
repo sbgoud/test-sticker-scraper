@@ -29,9 +29,12 @@ export default class FileStore<TFormat extends FileFormats> {
     private format?: FileFormats = undefined;
     private file?: File = undefined;
     content?: FileFormat<TFormat> = undefined;
+    setContent(content: any) {
+        this.content = content;
+    }
     private params?: DownloadParams = undefined;
     constructor(private rootStore: RootStore, file?: File, format?: FileFormats, params?: DownloadParams) {
-        makeAutoObservable(this, { content: observable.ref });
+        makeAutoObservable(this, { content: observable.ref, handlers: false });
         this.file = file;
         this.format = format;
         this.params = params;
@@ -80,10 +83,10 @@ export default class FileStore<TFormat extends FileFormats> {
 
             const fileId = this.file.id;
 
-            const chachedValue = cache.get(fileId);
-            if (chachedValue) {
-                this.content = chachedValue;
-                return chachedValue;
+            const cachedValue = cache.get(fileId);
+            if (cachedValue) {
+                this.setContent(cachedValue);
+                return cachedValue;
             }
 
             const download = await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 1, ...this.params });
@@ -123,7 +126,7 @@ export default class FileStore<TFormat extends FileFormats> {
 
             cache.set(fileId, content);
 
-            this.content = content;
+            this.setContent(content);
             return content;
         } finally {
             this.isLoading = false;
