@@ -3,6 +3,10 @@
     justify-content: flex-start!important;
 }
 
+.card :global(.names){
+    overflow: hidden;
+}
+
 .card :global(.name){
     text-transform: none!important;
 }

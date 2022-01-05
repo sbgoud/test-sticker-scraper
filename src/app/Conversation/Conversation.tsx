@@ -43,10 +43,10 @@ const createMessageStyles = memoize(
     })
 );
 
-interface Props extends RouteComponentProps<{ id: string }> {}
+export interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
 const Conversation: FC<Props> = ({ match }) => {
-    const id = match.params.id;
+    const id = match.params.id!;
     const chatId = parseInt(id);
 
     const history = useHistory();
@@ -60,6 +60,7 @@ const Conversation: FC<Props> = ({ match }) => {
 
     const photo = useFileStore(chat?.photo?.small, "base64");
 
+    const scrollLock = useRef<boolean>(false);
     const parentRef = useRef<HTMLElement>();
 
     let size = messages.length;
@@ -80,10 +81,9 @@ const Conversation: FC<Props> = ({ match }) => {
 
     const scrollView = useCallback(
         (count?: number) => {
-            console.log("try scroll", count);
             if (parentRef.current && count) {
                 const offset = MESSAGE_HEIGHT * count;
-                console.log("scroll", count, parentRef.current!.scrollTop, offset);
+
                 parentRef.current!.scrollTop += offset;
                 scrollToOffset(parentRef.current!.scrollTop);
             }

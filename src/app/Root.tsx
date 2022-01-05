@@ -3,10 +3,18 @@ import { Switch, Route, Redirect } from "react-router";
 import { Grid, useMediaQuery } from "@geist-ui/react";
 
 import Menu from "./Menu/Menu";
-import Conversation from "./Conversation/Conversation";
+import Conversation, { Props as ConversationProps } from "./Conversation/Conversation";
 import Set from "./Set/Set";
 
 import styles from "./Root.module.css";
+
+function RenderConversation(props: ConversationProps) {
+    return <Conversation key={props.match.params.id} {...props} />;
+}
+
+function RenderSet(props: ConversationProps) {
+    return <Set key={props.match.params.id} {...props} />;
+}
 
 export default function Root() {
     const isMobile = useMediaQuery("sm", { match: "down" });
@@ -16,8 +24,8 @@ export default function Root() {
             {isMobile ? (
                 <Switch>
                     <Route path="/chats" component={Menu} />
-                    <Route path="/conversation/:id" component={Conversation} />
-                    <Route path="/set/:id" render={(props) => <Set {...props} />} />
+                    <Route path="/conversation/:id" component={RenderConversation} />
+                    <Route path="/set/:id" component={RenderSet} />
                     <Redirect to="chats" />
                 </Switch>
             ) : (
@@ -27,11 +35,8 @@ export default function Root() {
                     </Grid>
                     <Grid className={styles.panel} sm={16} md={18} lg={20} xl={22}>
                         <Switch>
-                            <Route
-                                path="/conversation/:id?"
-                                render={(props) => <Conversation key={props.match.params.id} {...(props as any)} />}
-                            />
-                            <Route path="/set/:id" render={(props) => <Set key={props.match.params.id} {...props} />} />
+                            <Route path="/conversation/:id?" component={RenderConversation} />
+                            <Route path="/set/:id" component={RenderSet} />
                             <Redirect to="conversation" />
                         </Switch>
                     </Grid>

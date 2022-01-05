@@ -75,7 +75,9 @@ export default class StickerMessagesStore implements IMessagesStore {
 
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {
-            this.load();
+            if (ctx.update.chat.id == this.chatId) {
+                this.load();
+            }
 
             return next();
         })
@@ -104,6 +106,7 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     async load() {
+        let result: any = undefined;
         if (!this.canLoad || this.isLoading) {
             return;
         }
@@ -113,9 +116,7 @@ export default class StickerMessagesStore implements IMessagesStore {
 
         try {
             if (!this.chat) {
-                console.log(this.chatId, "get chat");
                 const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
-                console.log(this.chatId, "got chat");
 
                 if (chat.response._ === "chat") {
                     this.chat = chat.response as Chat;
@@ -125,14 +126,11 @@ export default class StickerMessagesStore implements IMessagesStore {
             }
 
             while (true) {
-                console.log(this.chatId, "request history");
                 const history = await this.rootStore.Airgram.api.getChatHistory({
                     chatId: this.chatId,
                     limit,
                     fromMessageId: this.startMessage,
                 });
-
-                console.log(this.chatId, "got history");
 
                 if (history.response._ === "messages") {
                     const messages = history.response as Messages;
@@ -177,7 +175,6 @@ export default class StickerMessagesStore implements IMessagesStore {
                     this.save();
 
                     if (stickerMessages.length) {
-                        console.log("loaded", stickerMessages.length);
                         return stickerMessages.length;
                     }
                 } else {

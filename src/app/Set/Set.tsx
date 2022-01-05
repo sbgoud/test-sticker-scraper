@@ -10,10 +10,10 @@ import styles from "./Set.module.css";
 
 import { FiArrowLeft } from "react-icons/fi";
 
-interface Props extends RouteComponentProps<{ id: string }> {}
+interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
 const Set: FC<Props> = ({ match }) => {
-    const setId = match.params.id;
+    const setId = match.params.id!;
 
     const history = useHistory();
     const rootStore = useContext(StoreContext);
@@ -43,9 +43,9 @@ const Set: FC<Props> = ({ match }) => {
                 </Grid>
             </Toolbar>
             <List className={styles.root}>
-                <Grid.Container justify="space-around">
+                <Grid.Container justify="flex-start">
                     {set?.stickers.map((sticker) => (
-                        <Grid key={sticker.sticker.id}>
+                        <Grid key={sticker.sticker.id} xs={24} sm={12} md={12} lg={8} xl={6} justify="center">
                             <Sticker sticker={sticker} />
                         </Grid>
                     ))}

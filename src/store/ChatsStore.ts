@@ -12,7 +12,6 @@ export interface Chat {
 }
 
 export default class ChatsStore {
-    offsetOrder = "9223372036854775807";
     chats = new Map<number, Chat>();
 
     constructor(private rootStore: RootStore) {
@@ -62,14 +61,7 @@ export default class ChatsStore {
         .build();
 
     load() {
-        if (this.chatsList.length) {
-            const order = this.chatsList[this.chatsList.length - 1].position?.order;
-            if (order) {
-                this.offsetOrder = order;
-            }
-        }
-
-        this.rootStore.Airgram.api.getChats({
+        return this.rootStore.Airgram.api.loadChats({
             chatList: { _: "chatListMain" },
             limit: 10,
         });

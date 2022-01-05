@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, FC, HTMLProps } from "react";
+import { forwardRef, useCallback, FC, HTMLProps, Ref, ComponentProps, ElementType } from "react";
 import cx from "classnames";
 import Scrollbars, { ScrollbarProps } from "react-custom-scrollbars-2";
 
@@ -8,10 +8,18 @@ const renderThumb: FC<HTMLProps<HTMLDivElement>> = ({ className, ...props }) => 
     return <div className={cx(className, styles.thumb)} {...props} />;
 };
 
-export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, ...other }, ref) => {
+type Props<TComponent extends ElementType> = ComponentProps<TComponent> &
+    ScrollbarProps & {
+        component?: TComponent;
+    };
+
+const ListComponent = <TComponent extends ElementType = "div">(
+    { component: Component = "div", children, ...other }: Props<TComponent>,
+    ref: Ref<HTMLDivElement>
+) => {
     const refSetter = useCallback((scrollbarsRef: any) => {
         if (scrollbarsRef && ref && typeof ref === "object") {
-            ref.current = scrollbarsRef.view;
+            (ref.current as any) = scrollbarsRef.view;
         } else if (scrollbarsRef && typeof ref === "function") {
             ref?.(scrollbarsRef.view);
         } else if (typeof ref === "function") {
@@ -20,10 +28,17 @@ export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const renderView = useCallback(
+        (props) => {
+            return <Component {...props} />;
+        },
+        [Component]
+    );
+
     return (
         <Scrollbars
             ref={refSetter}
-            style={{ ...style }}
+            renderView={renderView}
             renderThumbHorizontal={renderThumb}
             renderThumbVertical={renderThumb}
             {...other}
@@ -31,4 +46,6 @@ export const List = forwardRef<HTMLElement, ScrollbarProps>(({ style, children, 
             {children}
         </Scrollbars>
     );
-});
+};
+
+export const List = forwardRef(ListComponent);

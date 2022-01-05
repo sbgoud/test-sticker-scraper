@@ -83,6 +83,10 @@ export default class AuthorizationStore {
     }
 
     async getMe() {
+        if (this.user) {
+            return;
+        }
+
         const user = await this.rootStore.Airgram.api.getMe();
 
         if (user.response._ === "error") {
