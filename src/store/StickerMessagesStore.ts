@@ -1,8 +1,8 @@
 import { UPDATE } from "@airgram/constants";
-import { Chat, Message, Messages, MessageSticker } from "@airgram/core";
+import { Message, Messages, MessageSticker } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
-
 import HandlersBuilder from "../utils/HandlersBuilder";
+import { ChatStore } from "./ChatStore";
 import RootStore from "./RootStore";
 
 const limit = 100;
@@ -14,7 +14,6 @@ export interface StickerMessage extends Message {
 interface IMessagesStore {
     startMessage: number;
     canLoad: boolean;
-    chat?: Chat;
     messages?: StickerMessage[];
     messageIds: Map<number, boolean>;
     stickerIds: Map<string, boolean>;
@@ -24,13 +23,14 @@ const cache = new Map<number, IMessagesStore>();
 
 export default class StickerMessagesStore implements IMessagesStore {
     isLoading = false;
+    chatStore: ChatStore;
     setLoading(value: boolean) {
         this.isLoading = value;
     }
     isRestored = false;
     startMessage = 0;
     canLoad = true;
-    chat?: Chat = undefined;
+
     messages: StickerMessage[] = [];
     insertMessage(message: StickerMessage) {
         this.messages.unshift(message);
@@ -51,6 +51,8 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     constructor(private rootStore: RootStore, private chatId: number) {
+        this.chatStore = new ChatStore(rootStore, chatId);
+
         if (cache.has(chatId)) {
             const values = cache.get(chatId);
             Object.assign(this, values);
@@ -58,7 +60,6 @@ export default class StickerMessagesStore implements IMessagesStore {
         }
 
         makeAutoObservable(this, {
-            chat: observable.ref,
             messages: observable.shallow,
             messageIds: observable.shallow,
             stickerIds: observable.shallow,
@@ -70,12 +71,13 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     dispose() {
+        this.chatStore.dispose();
         this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
     }
 
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {
-            if (ctx.update.chat.id == this.chatId) {
+            if (ctx.update.chat.id === this.chatId) {
                 this.load();
             }
 
@@ -106,7 +108,6 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     async load() {
-        let result: any = undefined;
         if (!this.canLoad || this.isLoading) {
             return;
         }
@@ -115,15 +116,7 @@ export default class StickerMessagesStore implements IMessagesStore {
         this.setLoading(true);
 
         try {
-            if (!this.chat) {
-                const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
-
-                if (chat.response._ === "chat") {
-                    this.chat = chat.response as Chat;
-                } else {
-                    return;
-                }
-            }
+            await this.chatStore.load();
 
             while (true) {
                 const history = await this.rootStore.Airgram.api.getChatHistory({
@@ -190,7 +183,7 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     save() {
-        const { chat, messages, messageIds, stickerIds, startMessage, canLoad } = this;
-        cache.set(this.chatId, { chat, messages, messageIds, stickerIds, startMessage, canLoad });
+        const { messages, messageIds, stickerIds, startMessage, canLoad } = this;
+        cache.set(this.chatId, { messages, messageIds, stickerIds, startMessage, canLoad });
     }
 }

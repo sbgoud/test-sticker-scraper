@@ -1,14 +1,11 @@
-import { FC, useContext, useEffect } from "react";
+import { Button, Grid } from "@geist-ui/react";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import { RouteComponentProps, useHistory } from "react-router";
-
-import { Button, Grid, Text } from "@geist-ui/react";
-import { List, Sticker, StoreContext, Toolbar } from "../../components";
-import StickerSetStore from "../../store/StickerSetStore";
-
-import styles from "./Set.module.css";
-
+import { FC, useContext, useEffect } from "react";
 import { FiArrowLeft } from "react-icons/fi";
+import { RouteComponentProps, useHistory } from "react-router";
+import { List, Sticker, StoreContext, Toolbar, UserCard } from "../../components";
+import StickerSetStore from "../../store/StickerSetStore";
+import styles from "./Set.module.css";
 
 interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
@@ -37,9 +34,7 @@ const Set: FC<Props> = ({ match }) => {
                     false
                 )}
                 <Grid xs>
-                    <Text h5 margin={0}>
-                        {set?.title}
-                    </Text>
+                    <UserCard name={set?.title} />
                 </Grid>
             </Toolbar>
             <List className={styles.root}>

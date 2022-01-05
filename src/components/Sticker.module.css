@@ -1,5 +1,15 @@
 .root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 320px;
+    width: 320px;
+}
+
+.sticker {
     max-height: 320px;
     max-width: 320px;
     object-fit: scale-down;
 }
+

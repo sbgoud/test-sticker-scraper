@@ -1,14 +1,11 @@
-import { makeAutoObservable, observable } from "mobx";
-
-import { DownloadFileParams, File } from "@airgram/core";
-import RootStore from "./RootStore";
-import { useEffect } from "react";
-import { store as rootStore } from "../components/StoreProvider";
-import HandlersBuilder from "../utils/HandlersBuilder";
 import { UPDATE } from "@airgram/constants";
-
+import { DownloadFileParams, File } from "@airgram/core";
+import { makeAutoObservable, observable } from "mobx";
+import { useEffect, useState } from "react";
+import { store as rootStore } from "../components/StoreProvider";
 import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
-import { useLocalObservable } from "mobx-react-lite";
+import HandlersBuilder from "../utils/HandlersBuilder";
+import RootStore from "./RootStore";
 
 const cache = new Map<number, any>();
 
@@ -139,9 +136,11 @@ export function useFileStore<TResult extends FileFormats>(
     format?: TResult,
     params?: DownloadParams
 ): FileFormat<TResult> | undefined {
-    const store = useLocalObservable(() => new FileStore<TResult>(rootStore));
+    const [store] = useState(() => new FileStore<TResult>(rootStore, file, format, params));
 
     useEffect(() => {
+        store.load();
+
         return () => {
             store.dispose();
         };

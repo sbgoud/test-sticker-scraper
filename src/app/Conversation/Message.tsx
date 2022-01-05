@@ -1,43 +1,47 @@
-import { useContext } from "react";
-import { LinkProps, NavLink } from "react-router-dom";
-import { observer, useLocalObservable } from "mobx-react-lite";
-import { Grid, Text } from "@geist-ui/react";
-
+import { Grid } from "@geist-ui/react";
+import { observer } from "mobx-react-lite";
+import { HTMLProps, useEffect } from "react";
+import { NavLink } from "react-router-dom";
+import { Sticker, UserCard } from "../../components";
+import { useFileStore } from "../../store/FileStore";
+import { useMessageSenderStore } from "../../store/MessageSenderStore";
 import { StickerMessage } from "../../store/StickerMessagesStore";
-import StickerSetStore from "../../store/StickerSetStore";
-
 import styles from "./Message.module.css";
 
-import { Sticker, StoreContext } from "../../components";
-import { useEffect } from "react";
-
-interface MessageProps extends Omit<LinkProps, "to"> {
+interface MessageProps extends HTMLProps<HTMLDivElement> {
     message: StickerMessage;
 }
 
 const Message = ({ message, ...other }: MessageProps) => {
     const sticker = message.content.sticker;
-    const rootStore = useContext(StoreContext);
 
-    const state = useLocalObservable(() => new StickerSetStore(rootStore, sticker.setId));
+    const sender = useMessageSenderStore(message.senderId);
+    const senderPhoto = useFileStore(sender.user?.profilePhoto?.small ?? sender.chat?.photo?.small, "base64", {
+        priority: 32,
+    });
 
     useEffect(() => {
-        state.load();
-    }, [state]);
+        sender.load();
+    }, [sender]);
 
     return (
-        <NavLink className={styles.root} to={`/set/${sticker.setId}`} {...other}>
-            <Grid.Container gap={1} direction="column">
+        <div className={styles.root} {...other}>
+            <Grid.Container direction="column">
                 <Grid>
-                    <Text b type="secondary">
-                        {state.set?.title}
-                    </Text>
+                    <UserCard
+                        src={senderPhoto}
+                        name={sender.user ? sender.user.firstName + " " + sender.user.lastName : sender.chat?.title}
+                    >
+                        {new Date(message.date * 1000).toLocaleString()}
+                    </UserCard>
                 </Grid>
-                <Grid.Container className={styles.container} alignItems="center">
-                    <Sticker sticker={sticker} />
-                </Grid.Container>
+                <Grid className={styles.container} alignItems="center">
+                    <NavLink to={`/set/${sticker.setId}`}>
+                        <Sticker sticker={sticker} />
+                    </NavLink>
+                </Grid>
             </Grid.Container>
-        </NavLink>
+        </div>
     );
 };
 

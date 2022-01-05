@@ -6,10 +6,8 @@ module.exports = {
     webpack: {
         configure: (webpackConfig) => {
             const workerLoader = {
-                loader: "worker-loader",
-                options: {
-                    test: /\.worker\.js$/,
-                },
+                test: /\.worker\.js$/,
+                use: { loader: require.resolve("worker-loader") },
             };
 
             addBeforeLoader(webpackConfig, loaderByName("file-loader"), workerLoader);
@@ -18,17 +16,14 @@ module.exports = {
         },
         plugins: {
             add: [
-                new CopyPlugin({
-                    patterns: [
-                        {
-                            from: "node_modules/tdweb/dist/**/*",
-                            to: "[name][ext]",
-                            globOptions: {
-                                ignore: ["tdweb.js"],
-                            },
-                        },
-                    ],
-                }),
+                new CopyPlugin([
+                    {
+                        from: "node_modules/tdweb/dist/**/*",
+                        to: "./",
+                        flatten: true,
+                        ignore: ["tdweb.js"],
+                    },
+                ]),
             ],
         },
     },

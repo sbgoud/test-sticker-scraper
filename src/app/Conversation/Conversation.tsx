@@ -1,21 +1,16 @@
-import { FC, useContext, useState, useEffect, useRef, useCallback, CSSProperties } from "react";
-import { RouteComponentProps, useHistory } from "react-router";
-import { observer } from "mobx-react-lite";
-import { useVirtual } from "react-virtual";
-
 import { Button, Grid, Text } from "@geist-ui/react";
-
+import memoize from "fast-memoize";
+import { observer } from "mobx-react-lite";
+import { CSSProperties, FC, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { FiArrowLeft } from "react-icons/fi";
+import { RouteComponentProps, useHistory } from "react-router";
+import { useVirtual } from "react-virtual";
 import { CenterLayout, List, StoreContext, Toolbar, UserCard } from "../../components";
-import StickerMessagesStore from "../../store/StickerMessagesStore";
 import { useFileStore } from "../../store/FileStore";
-
+import StickerMessagesStore from "../../store/StickerMessagesStore";
+import styles from "./Conversation.module.css";
 import Loader from "./Loader";
 import Message from "./Message";
-
-import { FiArrowLeft } from "react-icons/fi";
-
-import styles from "./Conversation.module.css";
-import memoize from "fast-memoize";
 
 const PLACEHOLDER_HEIGHT = 1000;
 const MESSAGE_HEIGHT = 420;
@@ -38,7 +33,7 @@ const createMessageStyles = memoize(
         left: 0,
         height: size,
         width: "100%",
-        padding: 32,
+        padding: 0,
         //transform: `translateY(${start}px)`,
     })
 );
@@ -55,12 +50,11 @@ const Conversation: FC<Props> = ({ match }) => {
     const { Chats } = rootStore;
     const [store] = useState(() => new StickerMessagesStore(rootStore, chatId));
 
-    const chat = store.chat;
+    const chat = store.chatStore.chat;
     const messages = store.messages;
 
     const photo = useFileStore(chat?.photo?.small, "base64");
 
-    const scrollLock = useRef<boolean>(false);
     const parentRef = useRef<HTMLElement>();
 
     let size = messages.length;
