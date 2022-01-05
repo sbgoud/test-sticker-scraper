@@ -1,31 +1,43 @@
-import { Switch, Route, Redirect } from "react-router";
-
 import { Grid, useMediaQuery } from "@geist-ui/react";
-
+import { Redirect, Route, RouteProps, Switch } from "react-router";
+import Conversation from "./Conversation/Conversation";
 import Menu from "./Menu/Menu";
-import Conversation, { Props as ConversationProps } from "./Conversation/Conversation";
-import Set from "./Set/Set";
-
 import styles from "./Root.module.css";
+import Set from "./Set/Set";
+import Stickers from "./Stickers/Stickers";
 
-function RenderConversation(props: ConversationProps) {
-    return <Conversation key={props.match.params.id} {...props} />;
-}
+const routes: RouteProps[] = [
+    {
+        path: "/chats",
+        component: Menu,
+    },
+    {
+        path: "/stickers",
+        component: Stickers,
+    },
+    {
+        path: "/conversation/:id?",
+        render: (props) => <Conversation key={props.match.params.id} {...props} />,
+    },
+    {
+        path: "/set/:id?",
+        render: (props) => <Set key={props.match.params.id} {...props} />,
+    },
+];
 
-function RenderSet(props: ConversationProps) {
-    return <Set key={props.match.params.id} {...props} />;
+function toRoute(route: RouteProps, index: number) {
+    return <Route key={index} {...route} />;
 }
 
 export default function Root() {
     const isMobile = useMediaQuery("sm", { match: "down" });
+    const [menu, ...other] = routes;
 
     return (
         <Grid.Container gap={0} width="100%" height="100%">
             {isMobile ? (
                 <Switch>
-                    <Route path="/chats" component={Menu} />
-                    <Route path="/conversation/:id" component={RenderConversation} />
-                    <Route path="/set/:id" component={RenderSet} />
+                    {[menu, ...other].map(toRoute)}
                     <Redirect to="chats" />
                 </Switch>
             ) : (
@@ -34,11 +46,8 @@ export default function Root() {
                         <Menu />
                     </Grid>
                     <Grid className={styles.panel} sm={16} md={18} lg={20} xl={22}>
-                        <Switch>
-                            <Route path="/conversation/:id?" component={RenderConversation} />
-                            <Route path="/set/:id" component={RenderSet} />
-                            <Redirect to="conversation" />
-                        </Switch>
+                        <Switch>{other.map(toRoute)}</Switch>
+                        <Redirect to="conversation" />
                     </Grid>
                 </>
             )}

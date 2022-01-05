@@ -18,13 +18,16 @@ if (savedColor) {
 
 export default class ThemeStore {
     currentTheme = initColor;
+    setTheme(theme: ThemeVariants) {
+        this.currentTheme = theme;
+        localStorage.setItem(STORAGE_KEY, theme);
+    }
     constructor() {
         makeAutoObservable(this);
     }
 
     toggleTheme() {
         const newTheme = this.currentTheme === "dark" ? "light" : "dark";
-        this.currentTheme = newTheme;
-        localStorage.setItem(STORAGE_KEY, newTheme);
+        this.setTheme(newTheme);
     }
 }

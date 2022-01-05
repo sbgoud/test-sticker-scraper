@@ -10,7 +10,13 @@ const cache = new Map<number, Chat>();
 
 export class ChatStore {
     isLoading = false;
+    setLoading(value: boolean) {
+        this.isLoading = value;
+    }
     chat?: Chat = undefined;
+    setChat(chat: Chat) {
+        this.chat = chat;
+    }
 
     constructor(private rootStore: RootStore, private chatId: number) {
         if (cache.has(chatId)) {
@@ -45,16 +51,22 @@ export class ChatStore {
             return this.chat;
         }
 
-        const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
+        this.setLoading(true);
 
-        if (chat.response._ === "error") {
-            throw chat.response;
+        try {
+            const chat = await this.rootStore.Airgram.api.getChat({ chatId: this.chatId });
+
+            if (chat.response._ === "error") {
+                throw chat.response;
+            }
+
+            this.setChat(chat.response);
+            cache.set(this.chatId, chat.response);
+
+            return this.chat;
+        } finally {
+            this.setLoading(false);
         }
-
-        this.chat = chat.response;
-        cache.set(this.chatId, this.chat);
-
-        return this.chat;
     }
 }
 

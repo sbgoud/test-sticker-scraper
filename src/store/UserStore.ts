@@ -9,7 +9,14 @@ import RootStore from "./RootStore";
 const cache = new Map<number, User>();
 
 export class UserStore {
+    isLoading = false;
+    setLoading(value: boolean) {
+        this.isLoading = value;
+    }
     user?: User = undefined;
+    setUser(user: User) {
+        this.user = user;
+    }
 
     constructor(private rootStore: RootStore, private userId: number) {
         if (cache.has(userId)) {
@@ -49,8 +56,8 @@ export class UserStore {
             throw user.response;
         }
 
-        this.user = user.response;
-        cache.set(this.userId, this.user);
+        this.setUser(user.response);
+        cache.set(this.userId, user.response);
 
         return this.user;
     }

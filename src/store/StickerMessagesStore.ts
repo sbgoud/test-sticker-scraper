@@ -23,14 +23,13 @@ const cache = new Map<number, IMessagesStore>();
 
 export default class StickerMessagesStore implements IMessagesStore {
     isLoading = false;
-    chatStore: ChatStore;
     setLoading(value: boolean) {
         this.isLoading = value;
     }
+    chatStore: ChatStore;
     isRestored = false;
     startMessage = 0;
     canLoad = true;
-
     messages: StickerMessage[] = [];
     insertMessage(message: StickerMessage) {
         this.messages.unshift(message);
@@ -125,57 +124,55 @@ export default class StickerMessagesStore implements IMessagesStore {
                     fromMessageId: this.startMessage,
                 });
 
-                if (history.response._ === "messages") {
-                    const messages = history.response as Messages;
+                if (history.response._ === "error") {
+                    throw history.response;
+                }
 
-                    if (messages.totalCount === 0) {
-                        this.canLoad = false;
-                        break;
-                    }
+                const messages = history.response as Messages;
 
-                    const lastMessage = messages.messages![messages.messages!.length - 1];
-                    this.startMessage = lastMessage.id;
+                if (messages.totalCount === 0) {
+                    this.canLoad = false;
+                    break;
+                }
 
-                    const stickerMessages = Array.from(
-                        messages
-                            .messages!.reduce((acc, message) => {
-                                if (
-                                    message.content._ === "messageSticker" &&
-                                    !acc.has(message.content.sticker.setId) &&
-                                    !this.stickerIds.has(message.content.sticker.setId)
-                                ) {
-                                    acc.set(message.content.sticker.setId, message as any);
-                                }
-                                return acc;
-                            }, new Map<string, StickerMessage>())
-                            .values()
-                    ).filter((x) => !this.messageIds.has(x.id));
+                const lastMessage = messages.messages![messages.messages!.length - 1];
+                this.startMessage = lastMessage.id;
 
-                    for (const message of stickerMessages) {
-                        const content = message.content as MessageSticker;
+                const stickerMessages = Array.from(
+                    messages
+                        .messages!.reduce((acc, message) => {
+                            if (
+                                message.content._ === "messageSticker" &&
+                                !acc.has(message.content.sticker.setId) &&
+                                !this.stickerIds.has(message.content.sticker.setId)
+                            ) {
+                                acc.set(message.content.sticker.setId, message as any);
+                            }
+                            return acc;
+                        }, new Map<string, StickerMessage>())
+                        .values()
+                ).filter((x) => !this.messageIds.has(x.id));
 
-                        this.messageIds.set(message.id, true);
-                        this.stickerIds.set(content.sticker.setId, true);
-                        this.insertMessage(message);
-                    }
+                for (const message of stickerMessages) {
+                    const content = message.content as MessageSticker;
 
-                    this.setLoadingProgress(
-                        this.processed + messages.totalCount,
-                        this.total + messages.totalCount,
-                        this.batch + 1
-                    );
+                    this.messageIds.set(message.id, true);
+                    this.stickerIds.set(content.sticker.setId, true);
+                    this.insertMessage(message);
+                }
 
-                    this.save();
+                this.setLoadingProgress(
+                    this.processed + messages.totalCount,
+                    this.total + messages.totalCount,
+                    this.batch + 1
+                );
 
-                    if (stickerMessages.length) {
-                        return stickerMessages.length;
-                    }
-                } else {
-                    return;
+                this.save();
+
+                if (stickerMessages.length) {
+                    return stickerMessages.length;
                 }
             }
-        } catch (error) {
-            console.log(error);
         } finally {
             this.save();
             this.setLoading(false);

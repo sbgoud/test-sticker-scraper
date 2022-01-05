@@ -23,6 +23,9 @@ type DownloadParams = Omit<DownloadFileParams, "fileId">;
 
 export default class FileStore<TFormat extends FileFormats> {
     isLoading = false;
+    setLoading(value: boolean) {
+        this.isLoading = value;
+    }
     private format?: FileFormats = undefined;
     private file?: File = undefined;
     content?: FileFormat<TFormat> = undefined;
@@ -76,7 +79,7 @@ export default class FileStore<TFormat extends FileFormats> {
         }
 
         try {
-            this.isLoading = true;
+            this.setLoading(true);
 
             const fileId = this.file.id;
 
@@ -122,11 +125,11 @@ export default class FileStore<TFormat extends FileFormats> {
             }
 
             cache.set(fileId, content);
-
             this.setContent(content);
+
             return content;
         } finally {
-            this.isLoading = false;
+            this.setLoading(false);
         }
     }
 }

@@ -1,11 +1,18 @@
-import { Button, Grid, Text } from "@geist-ui/react";
-import memoize from "fast-memoize";
+import { Grid, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { CSSProperties, FC, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { FiArrowLeft } from "react-icons/fi";
-import { RouteComponentProps, useHistory } from "react-router";
+import { FC, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
-import { CenterLayout, List, StoreContext, Toolbar, UserCard } from "../../components";
+import {
+    CenterLayout,
+    List,
+    StoreContext,
+    Toolbar,
+    UserCard,
+    virtialContainerStyle,
+    virtualSizeStyles,
+} from "../../components";
+import { MobileBackButton } from "../../components/MobileBackButton";
 import { useFileStore } from "../../store/FileStore";
 import StickerMessagesStore from "../../store/StickerMessagesStore";
 import styles from "./Conversation.module.css";
@@ -17,34 +24,11 @@ const MESSAGE_HEIGHT = 420;
 
 let scrollTop = new Map<number, number>();
 
-const createContainerStyle = memoize(
-    (totalSize): CSSProperties => ({
-        minHeight: "100%",
-        height: `${totalSize}px`,
-        width: "100%",
-        position: "relative",
-    })
-);
-
-const createMessageStyles = memoize(
-    (size, start): CSSProperties => ({
-        position: "absolute",
-        top: start,
-        left: 0,
-        height: size,
-        width: "100%",
-        padding: 0,
-        //transform: `translateY(${start}px)`,
-    })
-);
-
 export interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
 const Conversation: FC<Props> = ({ match }) => {
     const id = match.params.id!;
     const chatId = parseInt(id);
-
-    const history = useHistory();
 
     const rootStore = useContext(StoreContext);
     const { Chats } = rootStore;
@@ -141,32 +125,24 @@ const Conversation: FC<Props> = ({ match }) => {
         );
     }
 
-    const style = createContainerStyle(totalSize);
-
     return (
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
-                {history.length ? (
-                    <Grid md={0}>
-                        <Button auto type="abort" iconRight={<FiArrowLeft />} onClick={history.goBack} />
-                    </Grid>
-                ) : (
-                    false
-                )}
+                <MobileBackButton />
                 <Grid xs>
                     <UserCard src={photo} name={chat?.title} />
                 </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
                 <List ref={parentRef as any} onScroll={handleScroll}>
-                    <div style={style}>
+                    <div style={virtialContainerStyle(totalSize)}>
                         {virtualItems.map(({ index, start, size }) => {
                             let realIndex = index;
                             if (store.canLoad) {
                                 realIndex--;
                             }
 
-                            const style = createMessageStyles(size, start);
+                            const style = virtualSizeStyles(size, start);
 
                             if (realIndex < 0)
                                 return (

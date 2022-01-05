@@ -1,12 +1,14 @@
+import { AUTHORIZATION_STATE, UPDATE } from "@airgram/constants";
 import { AuthorizationStateUnion, User } from "@airgram/core";
-import { UPDATE, AUTHORIZATION_STATE } from "@airgram/constants";
-
-import RootStore from "./RootStore";
-import { makeAutoObservable, observable, runInAction } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
+import RootStore from "./RootStore";
 
 export default class AuthorizationStore {
     state?: AuthorizationStateUnion = undefined;
+    setState(state: AuthorizationStateUnion) {
+        this.state = state;
+    }
     firstLaunch = true;
     user?: User;
 
@@ -31,9 +33,7 @@ export default class AuthorizationStore {
                 return;
             }
 
-            runInAction(() => {
-                this.state = state;
-            });
+            this.setState(state);
         })
         .build();
 

@@ -1,12 +1,27 @@
-import { forwardRef, useCallback, FC, HTMLProps, Ref, ComponentProps, ElementType } from "react";
 import cx from "classnames";
+import { ComponentProps, CSSProperties, ElementType, FC, forwardRef, HTMLProps, Ref, useCallback } from "react";
 import Scrollbars, { ScrollbarProps } from "react-custom-scrollbars-2";
-
 import styles from "./List.module.css";
 
 const renderThumb: FC<HTMLProps<HTMLDivElement>> = ({ className, ...props }) => {
     return <div className={cx(className, styles.thumb)} {...props} />;
 };
+
+export const virtialContainerStyle = (totalSize: number, horizontal = false): CSSProperties => ({
+    //minHeight: "100%",
+    height: horizontal ? "100%" : totalSize,
+    width: horizontal ? totalSize : "100%",
+    position: "relative",
+});
+
+export const virtualSizeStyles = (size: number, start: number, horizontal = false): CSSProperties => ({
+    position: "absolute",
+    top: horizontal ? 0 : start,
+    left: horizontal ? start : 0,
+    height: horizontal ? "100%" : size,
+    width: horizontal ? size : "100%",
+    //transform: `translateY(${start}px)`,
+});
 
 type Props<TComponent extends ElementType> = ComponentProps<TComponent> &
     ScrollbarProps & {

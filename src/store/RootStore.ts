@@ -1,9 +1,7 @@
 import { Airgram, Composer, MiddlewareFn } from "@airgram/web";
 import { EventEmitter } from "events";
 import { makeAutoObservable } from "mobx";
-
 import { AirgramFactory } from "./Airgram";
-
 import AuthorizationStore from "./AuthorizationStore";
 import ChatsStore from "./ChatsStore";
 import ConnectionStore from "./ConnectionStore";
@@ -17,7 +15,7 @@ export default class RootStore {
     static eventName = "action";
     events = new EventEmitter();
     private emit: MiddlewareFn = (ctx, next) => {
-        //console.log(ctx);
+        console.log(ctx);
         const listeners = (this.events.listeners(RootStore.eventName) ?? []) as MiddlewareFn[];
         return Composer.compose(listeners)(ctx, next);
     };

@@ -1,6 +1,5 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat as AirgramChat, ChatPosition, Message } from "@airgram/core";
-
 import { makeAutoObservable, observable } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
@@ -13,12 +12,7 @@ export interface Chat {
 
 export default class ChatsStore {
     chats = new Map<number, Chat>();
-
-    constructor(private rootStore: RootStore) {
-        makeAutoObservable(this, { chats: observable.shallow, handlers: false });
-    }
-
-    updateChat(chatId: number, updater: (chat: Chat) => Chat | void) {
+    setChat(chatId: number, updater: (chat: Chat) => Chat | void) {
         let chat = this.chats.get(chatId);
         if (!chat) {
             chat = {};
@@ -28,30 +22,34 @@ export default class ChatsStore {
         this.chats.set(chatId, chat!);
     }
 
+    constructor(private rootStore: RootStore) {
+        makeAutoObservable(this, { chats: observable.shallow, handlers: false });
+    }
+
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (ctx, next) => {
-            this.updateChat(ctx.update.chat.id, (chat) => {
+            this.setChat(ctx.update.chat.id, (chat) => {
                 chat.info = ctx.update.chat;
             });
 
             return next();
         })
         .add(UPDATE.updateChatPosition, (ctx, next) => {
-            this.updateChat(ctx.update.chatId, (chat) => {
+            this.setChat(ctx.update.chatId, (chat) => {
                 chat.position = ctx.update.position;
             });
 
             return next();
         })
         .add(UPDATE.updateChatLastMessage, (ctx, next) => {
-            this.updateChat(ctx.update.chatId, (chat) => {
+            this.setChat(ctx.update.chatId, (chat) => {
                 chat.lastMessage = ctx.update.lastMessage;
             });
 
             const position = ctx.update.positions.find((x) => x.list._ === "chatListMain");
 
             if (position) {
-                this.updateChat(ctx.update.chatId, (chat) => {
+                this.setChat(ctx.update.chatId, (chat) => {
                     chat.position = position;
                 });
             }
@@ -60,8 +58,8 @@ export default class ChatsStore {
         })
         .build();
 
-    load() {
-        return this.rootStore.Airgram.api.loadChats({
+    async load() {
+        await this.rootStore.Airgram.api.loadChats({
             chatList: { _: "chatListMain" },
             limit: 10,
         });

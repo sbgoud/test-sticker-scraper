@@ -1,11 +1,13 @@
+import { CONNECTION_STATE, UPDATE } from "@airgram/constants";
 import { MiddlewareFn, UpdateConnectionState } from "@airgram/core";
-import { UPDATE, CONNECTION_STATE } from "@airgram/constants";
-
-import RootStore from "./RootStore";
 import { makeAutoObservable } from "mobx";
+import RootStore from "./RootStore";
 
 export default class ConnectionStore {
     state: CONNECTION_STATE = CONNECTION_STATE.connectionStateWaitingForNetwork;
+    setState(state: CONNECTION_STATE) {
+        this.state = state;
+    }
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
@@ -18,7 +20,7 @@ export default class ConnectionStore {
             const context = ctx.update as unknown as UpdateConnectionState;
             const state = context.state._ as CONNECTION_STATE;
 
-            this.state = state;
+            this.setState(state);
         }
 
         return next();
