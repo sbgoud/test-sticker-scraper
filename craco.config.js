@@ -6,8 +6,10 @@ module.exports = {
     webpack: {
         configure: (webpackConfig) => {
             const workerLoader = {
-                test: /\.worker\.js$/,
-                use: { loader: require.resolve("worker-loader") },
+                loader: require.resolve("worker-loader"),
+                options: {
+                    test: /\.worker\.js$/,
+                },
             };
 
             addBeforeLoader(webpackConfig, loaderByName("file-loader"), workerLoader);
