@@ -1,19 +1,21 @@
-import { Grid, Text } from "@geist-ui/react";
+import { Button, Grid, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { FC, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef } from "react";
+import { DragDropContext, Draggable, DraggableProvided, Droppable, DroppableProvided } from "react-beautiful-dnd";
+import { MdSwapVert } from "react-icons/md";
 import { RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
-import { List, StoreContext, Toolbar, virtialContainerStyle, virtualSizeStyles } from "../../components";
-import { MobileBackButton } from "../../components/MobileBackButton";
-import { StickersStore } from "../../store/StickersStore";
-import InlineSet from "./InlineSet";
+import { List, MobileBackButton, Toolbar, TOOLBAR_HEIGHT, virtialContainerStyle } from "../../components";
+import { STICKER_SIZE } from "../../components/Sticker";
+import { useStickersStore } from "../../store/StickersStore";
+import { setRef } from "../../utils";
 import styles from "./Stickers.module.css";
+import { StickerSetRow } from "./StickerSetRow";
 
 interface Props extends RouteComponentProps {}
 
 const Stickers: FC<Props> = () => {
-    const rootStore = useContext(StoreContext);
-    const [store] = useState(() => new StickersStore(rootStore));
+    const store = useStickersStore();
 
     useEffect(() => {
         store.load();
@@ -22,7 +24,12 @@ const Stickers: FC<Props> = () => {
 
     const parentRef = useRef<HTMLElement>();
 
-    const estimateSize = useCallback((index) => 420, []);
+    const itemSize = useMemo(
+        () => TOOLBAR_HEIGHT + (store.isReordering ? 0 : STICKER_SIZE.default),
+        [store.isReordering]
+    );
+
+    const estimateSize = useCallback(() => itemSize, [itemSize]);
 
     const { virtualItems, totalSize } = useVirtual({
         size: store.sets?.length ?? 0,
@@ -37,20 +44,68 @@ const Stickers: FC<Props> = () => {
                 <Grid xs>
                     <Text>Stickers</Text>
                 </Grid>
+                <Grid>
+                    <Button
+                        auto
+                        type={store.isReordering ? "secondary" : "abort"}
+                        iconRight={<MdSwapVert />}
+                        onClick={() => store.toggleReordering()}
+                    />
+                </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
-                <List ref={parentRef as any}>
-                    <div style={virtialContainerStyle(totalSize)}>
-                        {virtualItems.map(({ index, start, size }) => {
-                            const set = store.sets?.[index];
-                            return (
-                                <div key={index} style={virtualSizeStyles(size, start)}>
-                                    <InlineSet setInfo={set!} />
+                <DragDropContext onDragEnd={(result) => store.reorderSets(result)}>
+                    <Droppable
+                        isDropDisabled={!store.isReordering}
+                        droppableId="sets"
+                        mode="virtual"
+                        renderClone={(provided, _, rubric) => (
+                            <StickerSetRow
+                                provided={provided}
+                                store={store}
+                                set={store.sets![rubric.source.index]}
+                                index={rubric.source.index}
+                                size={itemSize}
+                            />
+                        )}
+                    >
+                        {(provided: DroppableProvided) => (
+                            <List
+                                ref={(ref) => {
+                                    if (ref instanceof HTMLElement) {
+                                        setRef(parentRef, ref);
+                                        setRef(provided.innerRef, ref);
+                                    }
+                                }}
+                            >
+                                <div style={virtialContainerStyle(totalSize)}>
+                                    {virtualItems.map(({ index, start }) => {
+                                        const set = store.sets?.[index]!;
+                                        return (
+                                            <Draggable
+                                                isDragDisabled={!store.isReordering}
+                                                draggableId={set.id}
+                                                index={index}
+                                                key={set.id}
+                                            >
+                                                {(provided: DraggableProvided) => (
+                                                    <StickerSetRow
+                                                        provided={provided}
+                                                        store={store}
+                                                        index={index}
+                                                        set={set}
+                                                        start={start}
+                                                        size={itemSize}
+                                                    />
+                                                )}
+                                            </Draggable>
+                                        );
+                                    })}
                                 </div>
-                            );
-                        })}
-                    </div>
-                </List>
+                            </List>
+                        )}
+                    </Droppable>
+                </DragDropContext>
             </Grid.Container>
         </Grid.Container>
     );

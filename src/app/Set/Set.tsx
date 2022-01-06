@@ -1,20 +1,18 @@
 import { Grid } from "@geist-ui/react";
-import { observer, useLocalObservable } from "mobx-react-lite";
-import { FC, useContext, useEffect } from "react";
+import { observer } from "mobx-react-lite";
+import { FC, useEffect } from "react";
 import { RouteComponentProps } from "react-router";
-import { List, Sticker, StoreContext, Toolbar, UserCard } from "../../components";
-import { MobileBackButton } from "../../components/MobileBackButton";
-import StickerSetStore from "../../store/StickerSetStore";
+import { List, MobileBackButton, Sticker, Toolbar, UserCard } from "../../components";
+import { useStickerSetStore } from "../../store/StickerSetStore";
 import styles from "./Set.module.css";
+import SetActions from "./SetActions";
 
 interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
 const Set: FC<Props> = ({ match }) => {
     const setId = match.params.id!;
 
-    const rootStore = useContext(StoreContext);
-
-    const state = useLocalObservable(() => new StickerSetStore(rootStore, setId));
+    const state = useStickerSetStore(setId);
     const set = state.set;
 
     useEffect(() => {
@@ -26,8 +24,11 @@ const Set: FC<Props> = ({ match }) => {
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
                 <MobileBackButton />
-                <Grid xs>
+                <Grid>
                     <UserCard name={set?.title} />
+                </Grid>
+                <Grid xs justify="flex-end">
+                    <SetActions store={state} />
                 </Grid>
             </Toolbar>
             <List className={styles.root}>

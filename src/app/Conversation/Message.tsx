@@ -35,7 +35,7 @@ const Message = ({ message, ...other }: MessageProps) => {
                         {new Date(message.date * 1000).toLocaleString()}
                     </UserCard>
                 </Grid>
-                <Grid className={styles.container} alignItems="center">
+                <Grid className={styles.container} alignItems="flex-start">
                     <NavLink to={`/set/${sticker.setId}`}>
                         <Sticker sticker={sticker} />
                     </NavLink>

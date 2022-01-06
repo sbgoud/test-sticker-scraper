@@ -1,10 +1,7 @@
+import { Button, Grid, Link, Spacer, Text } from "@geist-ui/react";
 import { useContext } from "react";
-
-import { Grid, Link, Text, Spacer, Button } from "@geist-ui/react";
-
-import { StoreContext } from "../components/StoreProvider";
-
 import { FiHeart, FiMoon, FiSun } from "react-icons/fi";
+import { StoreContext } from "../components";
 
 const Footer = () => {
     const { Theme } = useContext(StoreContext);

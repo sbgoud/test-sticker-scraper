@@ -1,4 +1,5 @@
 import { Grid, useMediaQuery } from "@geist-ui/react";
+import { ComponentProps } from "react";
 import { Redirect, Route, RouteProps, Switch } from "react-router";
 import Conversation from "./Conversation/Conversation";
 import Menu from "./Menu/Menu";
@@ -29,25 +30,34 @@ function toRoute(route: RouteProps, index: number) {
     return <Route key={index} {...route} />;
 }
 
+const panelProps: ComponentProps<typeof Grid> = {
+    paddingTop: 0,
+    paddingBottom: 0,
+};
+
 export default function Root() {
     const isMobile = useMediaQuery("sm", { match: "down" });
     const [menu, ...other] = routes;
 
     return (
-        <Grid.Container gap={0} width="100%" height="100%">
+        <Grid.Container gap={2} margin={0} width="100%" height="100%">
             {isMobile ? (
-                <Switch>
-                    {[menu, ...other].map(toRoute)}
-                    <Redirect to="chats" />
-                </Switch>
+                <Grid {...panelProps} className={styles.panel} xs={24}>
+                    <Switch>
+                        {[menu, ...other].map(toRoute)}
+                        <Redirect to="chats" />
+                    </Switch>
+                </Grid>
             ) : (
                 <>
-                    <Grid className={styles.panel} sm={8} md={6} lg={4} xl={2}>
+                    <Grid {...panelProps} className={styles.panel} sm={8} md={6} lg={4} xl={2}>
                         <Menu />
                     </Grid>
-                    <Grid className={styles.panel} sm={16} md={18} lg={20} xl={22}>
-                        <Switch>{other.map(toRoute)}</Switch>
-                        <Redirect to="conversation" />
+                    <Grid {...panelProps} className={styles.panel} sm={16} md={18} lg={20} xl={22}>
+                        <Switch>
+                            {other.map(toRoute)}
+                            <Redirect to="conversation" />
+                        </Switch>
                     </Grid>
                 </>
             )}

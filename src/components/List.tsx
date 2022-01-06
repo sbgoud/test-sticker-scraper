@@ -8,7 +8,6 @@ const renderThumb: FC<HTMLProps<HTMLDivElement>> = ({ className, ...props }) => 
 };
 
 export const virtialContainerStyle = (totalSize: number, horizontal = false): CSSProperties => ({
-    //minHeight: "100%",
     height: horizontal ? "100%" : totalSize,
     width: horizontal ? totalSize : "100%",
     position: "relative",
@@ -20,7 +19,6 @@ export const virtualSizeStyles = (size: number, start: number, horizontal = fals
     left: horizontal ? start : 0,
     height: horizontal ? "100%" : size,
     width: horizontal ? size : "100%",
-    //transform: `translateY(${start}px)`,
 });
 
 type Props<TComponent extends ElementType> = ComponentProps<TComponent> &

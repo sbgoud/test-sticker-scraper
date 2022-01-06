@@ -1,18 +1,18 @@
-import { Grid, Text } from "@geist-ui/react";
+import { Grid, Text, useMediaQuery } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { RouteComponentProps } from "react-router";
+import { Redirect, RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
 import {
     CenterLayout,
     List,
+    MobileBackButton,
     StoreContext,
     Toolbar,
     UserCard,
     virtialContainerStyle,
     virtualSizeStyles,
 } from "../../components";
-import { MobileBackButton } from "../../components/MobileBackButton";
 import { useFileStore } from "../../store/FileStore";
 import StickerMessagesStore from "../../store/StickerMessagesStore";
 import styles from "./Conversation.module.css";
@@ -116,6 +116,12 @@ const Conversation: FC<Props> = ({ match }) => {
         },
         [chatId, tryLoadMessages]
     );
+
+    const isMobile = useMediaQuery("sm", { match: "down" });
+
+    if (!id && isMobile) {
+        return <Redirect to="/chats" />;
+    }
 
     if (!id) {
         return (

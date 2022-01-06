@@ -2,7 +2,7 @@ import { UPDATE } from "@airgram/constants";
 import { DownloadFileParams, File } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
-import { store as rootStore } from "../components/StoreProvider";
+import { store as rootStore } from "../components";
 import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";

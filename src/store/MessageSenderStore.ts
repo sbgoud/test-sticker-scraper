@@ -1,7 +1,7 @@
 import { MessageSenderUnion } from "@airgram/web";
 import { makeAutoObservable } from "mobx";
 import { useEffect, useState } from "react";
-import { store as rootStore } from "../components/StoreProvider";
+import { store as rootStore } from "../components";
 import { ChatStore } from "./ChatStore";
 import RootStore from "./RootStore";
 import { UserStore } from "./UserStore";

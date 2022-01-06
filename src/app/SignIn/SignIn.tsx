@@ -1,12 +1,10 @@
-import { useContext } from "react";
-import { observer } from "mobx-react-lite";
 import { AUTHORIZATION_STATE } from "@airgram/constants";
-
-import { StoreContext } from "../../components/StoreProvider";
-
-import PhoneNumber from "./PhoneNumber";
+import { observer } from "mobx-react-lite";
+import { useContext } from "react";
+import { StoreContext } from "../../components";
 import Code from "./Code";
 import Password from "./Password";
+import PhoneNumber from "./PhoneNumber";
 import QrCode from "./QrCode";
 
 const SignIn = () => {

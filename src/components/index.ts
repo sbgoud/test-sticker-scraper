@@ -1,7 +1,13 @@
 export * from "./CenterLayout";
 export * from "./CssThemeVariables";
 export * from "./List";
+export * from "./MobileBackButton";
 export { default as Sticker } from "./Sticker";
+export * from "./StickerSetThumbnail";
 export * from "./StoreProvider";
+export * from "./Thumbnail";
 export * from "./Toolbar";
 export * from "./UserCard";
+export * from "./viewer/FileViewProps";
+export { default as ImageView } from "./viewer/ImageView";
+export { default as LottieView } from "./viewer/LottieView";

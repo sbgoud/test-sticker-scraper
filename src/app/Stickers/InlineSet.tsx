@@ -1,19 +1,32 @@
 import { StickerSetInfo } from "@airgram/web";
-import { Grid, Text } from "@geist-ui/react";
+import { Button, Grid, Spacer, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { FC, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef } from "react";
+import { MdOpenInFull } from "react-icons/md";
+import { NavLink } from "react-router-dom";
 import { useVirtual } from "react-virtual";
-import { List, Sticker, StoreContext, virtialContainerStyle, virtualSizeStyles } from "../../components";
-import StickerSetStore from "../../store/StickerSetStore";
+import {
+    List,
+    Sticker,
+    StickerSetThumbnail,
+    Toolbar,
+    virtialContainerStyle,
+    virtualSizeStyles,
+} from "../../components";
+import { STICKER_SIZE } from "../../components/Sticker";
+import { useStickerSetStore } from "../../store/StickerSetStore";
+import SetActions from "../Set/SetActions";
 import styles from "./InlineSet.module.css";
 
 interface Props {
     setInfo: StickerSetInfo;
+    hideToolbar?: boolean;
+    hideControls?: boolean;
+    hideList?: boolean;
 }
 
-const InlineSet: FC<Props> = ({ setInfo }) => {
-    const rootStore = useContext(StoreContext);
-    const [store] = useState(() => new StickerSetStore(rootStore, setInfo.id));
+const InlineSet: FC<Props> = ({ hideToolbar = false, hideControls = false, hideList = false, setInfo }) => {
+    const store = useStickerSetStore(setInfo.id);
 
     useEffect(() => {
         store.load();
@@ -23,7 +36,7 @@ const InlineSet: FC<Props> = ({ setInfo }) => {
 
     const parentRef = useRef<HTMLElement>();
 
-    const estimateSize = useCallback((index) => 420, []);
+    const estimateSize = useCallback(() => STICKER_SIZE.default + 12, []);
 
     const { virtualItems, totalSize } = useVirtual({
         horizontal: true,
@@ -34,24 +47,40 @@ const InlineSet: FC<Props> = ({ setInfo }) => {
 
     return (
         <Grid.Container className={styles.root} direction="column" justify="flex-start" alignItems="stretch">
-            <Grid>
-                <Text>{set?.title}</Text>
-            </Grid>
-            <Grid className={styles.list}>
-                <List ref={parentRef as any}>
-                    <div style={virtialContainerStyle(totalSize, true)}>
-                        {virtualItems.map(({ index, start, size }) => {
-                            const sticker = set?.stickers[index];
+            {!hideToolbar && (
+                <Toolbar>
+                    <StickerSetThumbnail set={set} height={26} width={26} />
+                    <Spacer w={0.5} />
+                    <Text small b>
+                        {set?.title}
+                    </Text>
+                    {!hideControls && (
+                        <Grid xs justify="flex-end">
+                            <NavLink to={`/set/${setInfo.id}`}>
+                                <Button auto type="abort" iconRight={<MdOpenInFull />} />
+                            </NavLink>
+                            <SetActions store={store} />
+                        </Grid>
+                    )}
+                </Toolbar>
+            )}
+            {!hideList && (
+                <Grid className={styles.list}>
+                    <List ref={parentRef as any}>
+                        <div style={virtialContainerStyle(totalSize, true)}>
+                            {virtualItems.map(({ index, start, size }) => {
+                                const sticker = set?.stickers[index];
 
-                            return (
-                                <div key={index} style={virtualSizeStyles(size, start, true)}>
-                                    <Sticker sticker={sticker!} />
-                                </div>
-                            );
-                        })}
-                    </div>
-                </List>
-            </Grid>
+                                return (
+                                    <div key={index} style={virtualSizeStyles(size, start, true)}>
+                                        <Sticker sticker={sticker!} />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </List>
+                </Grid>
+            )}
         </Grid.Container>
     );
 };

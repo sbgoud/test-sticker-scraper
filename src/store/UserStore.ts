@@ -2,7 +2,7 @@ import { UPDATE } from "@airgram/constants";
 import { User } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
-import { store as rootStore } from "../components/StoreProvider";
+import { store as rootStore } from "../components";
 import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
 
