@@ -1,8 +1,8 @@
-import { Grid } from "@geist-ui/react";
+import { Grid, Spacer, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useEffect } from "react";
 import { RouteComponentProps } from "react-router";
-import { List, MobileBackButton, Sticker, Toolbar, UserCard } from "../../components";
+import { List, MobileBackButton, Sticker, StickerSetThumbnail, Toolbar } from "../../components";
 import { useStickerSetStore } from "../../store/StickerSetStore";
 import styles from "./Set.module.css";
 import SetActions from "./SetActions";
@@ -24,9 +24,11 @@ const Set: FC<Props> = ({ match }) => {
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
                 <MobileBackButton />
-                <Grid>
-                    <UserCard name={set?.title} />
-                </Grid>
+                <StickerSetThumbnail set={set} height={26} width={26} />
+                <Spacer w={0.5} />
+                <Text small b>
+                    {set?.title}
+                </Text>
                 <Grid xs justify="flex-end">
                     <SetActions store={state} />
                 </Grid>

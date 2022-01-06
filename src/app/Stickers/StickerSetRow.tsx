@@ -23,10 +23,11 @@ export const StickerSetRow: FC<Props> = ({ provided, store, index, set, size, st
             key={index}
             className={styles.setWrapper}
             {...provided.draggableProps}
+            {...provided.dragHandleProps}
             style={{ ...virtualSizeStyles(size, start ?? 0), ...provided.draggableProps.style }}
         >
             {store.isReordering && (
-                <div className={styles.dragHandle} {...provided.dragHandleProps}>
+                <div className={styles.dragHandle}>
                     <MdOutlineReorder />
                 </div>
             )}
