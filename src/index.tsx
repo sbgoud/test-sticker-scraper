@@ -1,18 +1,19 @@
+import "inter-ui/inter.css";
+import { DndProvider } from "react-dnd-multi-backend";
+import HTML5toTouch from "react-dnd-multi-backend/dist/esm/HTML5toTouch";
 import ReactDOM from "react-dom";
 import { HashRouter } from "react-router-dom";
-
-import "./index.css";
-import "inter-ui/inter.css";
-
 import App from "./App";
-import reportWebVitals from "./reportWebVitals";
-
 import { StoreProvider } from "./components";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
 
 ReactDOM.render(
     <StoreProvider>
         <HashRouter>
-            <App />
+            <DndProvider options={HTML5toTouch}>
+                <App />
+            </DndProvider>
         </HashRouter>
     </StoreProvider>,
     document.getElementById("root")

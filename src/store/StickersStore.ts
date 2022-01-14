@@ -2,7 +2,6 @@ import { UPDATE } from "@airgram/constants";
 import { StickerSetInfo } from "@airgram/web";
 import { makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
-import { DropResult } from "react-beautiful-dnd";
 import { store as rootStore } from "../components";
 import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
@@ -16,23 +15,12 @@ export class StickersStore {
     setReordering(value: boolean) {
         this.isReordering = value;
     }
-    async reorderSets(result: DropResult) {
+    originalPosition?: number;
+    newPosition = 0;
+    async saveSetsOrder() {
         if (!this.sets) {
             return;
         }
-        const { source, destination } = result;
-        if (!destination) {
-            return;
-        }
-
-        const sourceSet = this.sets[source.index];
-
-        if (source.index === destination.index) {
-            return;
-        }
-
-        this.sets.splice(source.index, 1);
-        this.sets.splice(destination.index, 0, sourceSet);
 
         const stickerSetIds = this.sets.map((set) => set.id);
 
@@ -43,9 +31,39 @@ export class StickersStore {
                 throw reorder.response;
             }
         } catch {
-            this.sets.splice(destination.index, 0, sourceSet);
-            this.sets.splice(source.index, 1);
+            if (this.originalPosition) {
+                this.moveSet(this.newPosition, this.originalPosition);
+            }
+        } finally {
+            this.originalPosition = undefined;
         }
+    }
+    swapSets(firstSetId: string, secondSetId: string) {
+        if (!this.sets?.length) {
+            return;
+        }
+
+        const originalPosition = this.sets.findIndex((set) => set.id === firstSetId);
+
+        if (this.originalPosition === undefined) {
+            this.originalPosition = originalPosition;
+        }
+
+        const newPosition = this.sets.findIndex((set) => set.id === secondSetId);
+
+        this.newPosition = newPosition;
+
+        this.moveSet(originalPosition, newPosition);
+    }
+    moveSet(originalPosition: number, newPosition: number) {
+        if (!this.sets?.length) {
+            return;
+        }
+
+        const set = this.sets[originalPosition];
+
+        this.sets.splice(originalPosition, 1);
+        this.sets.splice(newPosition, 0, set);
     }
 
     sets?: StickerSetInfo[] = undefined;
@@ -55,6 +73,8 @@ export class StickersStore {
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
             sets: observable.shallow,
+            originalPosition: false,
+            newPosition: false,
         });
 
         rootStore.events.addListener(RootStore.eventName, this.handlers);

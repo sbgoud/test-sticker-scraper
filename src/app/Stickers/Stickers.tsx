@@ -1,16 +1,16 @@
 import { Button, Grid, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useCallback, useEffect, useMemo, useRef } from "react";
-import { DragDropContext, Draggable, DraggableProvided, Droppable, DroppableProvided } from "react-beautiful-dnd";
 import { MdSwapVert } from "react-icons/md";
 import { RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
 import { List, MobileBackButton, Toolbar, TOOLBAR_HEIGHT, virtialContainerStyle } from "../../components";
 import { STICKER_SIZE } from "../../components/Sticker";
 import { useStickersStore } from "../../store/StickersStore";
-import { setRef } from "../../utils";
+import FavoriteStickersRow from "./FavoriteStickersRow";
+import RecentStickersRow from "./RecentStickersRow";
 import styles from "./Stickers.module.css";
-import { StickerSetRow } from "./StickerSetRow";
+import StickerSetRow from "./StickerSetRow";
 
 interface Props extends RouteComponentProps {}
 
@@ -24,6 +24,31 @@ const Stickers: FC<Props> = () => {
 
     const parentRef = useRef<HTMLElement>();
 
+    const [showFavorites, favoritesPosition] = useMemo(() => {
+        const showFavorites = !store.isReordering;
+        return [showFavorites, 0];
+    }, [store.isReordering]);
+
+    const [showRecent, recentPosition] = useMemo(() => {
+        const showRecent = !store.isReordering;
+        return [showRecent, showRecent && showFavorites ? favoritesPosition + 1 : favoritesPosition];
+    }, [store.isReordering, showFavorites, favoritesPosition]);
+
+    const [listSize, listOffset] = useMemo(() => {
+        let listOffset = 0;
+        let count = store.sets?.length ?? 0;
+
+        if (showFavorites) {
+            listOffset += 1;
+        }
+
+        if (showRecent) {
+            listOffset += 1;
+        }
+
+        return [count + listOffset, listOffset];
+    }, [showFavorites, showRecent, store.sets?.length]);
+
     const itemSize = useMemo(
         () => TOOLBAR_HEIGHT + (store.isReordering ? 0 : STICKER_SIZE.default),
         [store.isReordering]
@@ -32,7 +57,7 @@ const Stickers: FC<Props> = () => {
     const estimateSize = useCallback(() => itemSize, [itemSize]);
 
     const { virtualItems, totalSize } = useVirtual({
-        size: store.sets?.length ?? 0,
+        size: listSize,
         parentRef,
         estimateSize,
     });
@@ -54,58 +79,48 @@ const Stickers: FC<Props> = () => {
                 </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
-                <DragDropContext onDragEnd={(result) => store.reorderSets(result)}>
-                    <Droppable
-                        isDropDisabled={!store.isReordering}
-                        droppableId="sets"
-                        mode="virtual"
-                        renderClone={(provided, _, rubric) => (
-                            <StickerSetRow
-                                provided={provided}
-                                store={store}
-                                set={store.sets![rubric.source.index]}
-                                index={rubric.source.index}
-                                size={itemSize}
-                            />
-                        )}
-                    >
-                        {(provided: DroppableProvided) => (
-                            <List
-                                ref={(ref) => {
-                                    if (ref instanceof HTMLElement) {
-                                        setRef(parentRef, ref);
-                                        setRef(provided.innerRef, ref);
-                                    }
-                                }}
-                            >
-                                <div style={virtialContainerStyle(totalSize)}>
-                                    {virtualItems.map(({ index, start }) => {
-                                        const set = store.sets?.[index]!;
-                                        return (
-                                            <Draggable
-                                                isDragDisabled={!store.isReordering}
-                                                draggableId={set.id}
-                                                index={index}
-                                                key={set.id}
-                                            >
-                                                {(provided: DraggableProvided) => (
-                                                    <StickerSetRow
-                                                        provided={provided}
-                                                        store={store}
-                                                        index={index}
-                                                        set={set}
-                                                        start={start}
-                                                        size={itemSize}
-                                                    />
-                                                )}
-                                            </Draggable>
-                                        );
-                                    })}
-                                </div>
-                            </List>
-                        )}
-                    </Droppable>
-                </DragDropContext>
+                <List ref={parentRef as any}>
+                    <div style={virtialContainerStyle(totalSize)}>
+                        {virtualItems.map(({ index, start }) => {
+                            if (showFavorites && index === favoritesPosition) {
+                                return (
+                                    <FavoriteStickersRow
+                                        key={index}
+                                        index={index}
+                                        store={store}
+                                        start={start}
+                                        size={itemSize}
+                                    />
+                                );
+                            }
+
+                            if (showRecent && index === recentPosition) {
+                                return (
+                                    <RecentStickersRow
+                                        key={index}
+                                        index={index}
+                                        store={store}
+                                        start={start}
+                                        size={itemSize}
+                                    />
+                                );
+                            }
+
+                            const set = store.sets?.[index - listOffset]!;
+
+                            return (
+                                <StickerSetRow
+                                    key={index}
+                                    store={store}
+                                    index={index}
+                                    set={set}
+                                    start={start}
+                                    size={itemSize}
+                                />
+                            );
+                        })}
+                    </div>
+                </List>
             </Grid.Container>
         </Grid.Container>
     );

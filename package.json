@@ -42,8 +42,11 @@
         "pako": "^2.0.4",
         "qrcode.react": "^1.0.1",
         "react": "^17.0.2",
-        "react-beautiful-dnd": "^13.1.0",
         "react-custom-scrollbars-2": "^4.4.0",
+        "react-dnd": "^14.0.5",
+        "react-dnd-html5-backend": "^14.1.0",
+        "react-dnd-multi-backend": "^6.0.2",
+        "react-dnd-touch-backend": "^14.1.1",
         "react-dom": "^17.0.2",
         "react-hook-form": "^7.22.5",
         "react-icons": "^4.3.1",
@@ -84,6 +87,7 @@
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.5",
-        "@types/react-beautiful-dnd": "^13.1.2"
+        "@types/react-beautiful-dnd": "^13.1.2",
+        "@types/react-dnd-multi-backend": "^6.0.1"
     }
 }
