@@ -1,6 +1,6 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat } from "@airgram/web";
-import { makeAutoObservable, observable } from "mobx";
+import { Lambda, makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
 import { store as rootStore } from "../components";
 import { HandlersBuilder } from "../utils";
@@ -10,10 +10,13 @@ const cache = new Map<number, Chat>();
 
 export class ChatStore {
     isLoading = false;
+    disposers: Lambda[] = [];
+
     setLoading(value: boolean) {
         this.isLoading = value;
     }
     chat?: Chat = undefined;
+
     setChat(chat: Chat) {
         this.chat = chat;
     }
@@ -26,6 +29,7 @@ export class ChatStore {
 
         makeAutoObservable(this, {
             chat: observable.ref,
+            dispose: false,
             handlers: false,
         });
 
@@ -33,6 +37,9 @@ export class ChatStore {
     }
 
     dispose() {
+        for (const disposer of this.disposers) {
+            disposer();
+        }
         this.rootStore.events.removeListener(this.handlers);
     }
 

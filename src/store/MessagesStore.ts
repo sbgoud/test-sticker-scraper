@@ -15,13 +15,14 @@ interface IMessagesStore {
     startMessage: number;
     canLoad: boolean;
     messages?: StickerMessage[];
-    messageIds: Map<number, boolean>;
-    stickerIds: Map<string, boolean>;
+    messageIds: Set<number>;
+    stickerIds: Set<string>;
+    chatIds: Set<number>;
 }
 
 const cache = new Map<number, IMessagesStore>();
 
-export default class StickerMessagesStore implements IMessagesStore {
+export default class MessagesStore implements IMessagesStore {
     isLoading = false;
     setLoading(value: boolean) {
         this.isLoading = value;
@@ -37,8 +38,9 @@ export default class StickerMessagesStore implements IMessagesStore {
     addMessage(message: StickerMessage) {
         this.messages.push(message);
     }
-    messageIds = new Map<number, boolean>();
-    stickerIds = new Map<string, boolean>();
+    messageIds = new Set<number>();
+    stickerIds = new Set<string>();
+    chatIds = new Set<number>();
 
     processed: number = 0;
     total: number = 0;
@@ -85,11 +87,11 @@ export default class StickerMessagesStore implements IMessagesStore {
         .add(UPDATE.updateNewMessage, (action, next) => {
             const message = action.update.message;
             if (message.chatId === this.chatId && !this.messageIds.has(message.id)) {
-                this.messageIds.set(message.id, true);
+                this.messageIds.add(message.id);
 
                 if (message.content._ === "messageSticker" && !this.stickerIds.has(message.content.sticker.setId)) {
                     this.addMessage(message as unknown as StickerMessage);
-                    this.stickerIds.set(message.content.sticker.setId, true);
+                    this.stickerIds.add(message.content.sticker.setId);
                 }
 
                 this.save();
@@ -138,27 +140,20 @@ export default class StickerMessagesStore implements IMessagesStore {
                 const lastMessage = messages.messages![messages.messages!.length - 1];
                 this.startMessage = lastMessage.id;
 
-                const stickerMessages = Array.from(
-                    messages
-                        .messages!.reduce((acc, message) => {
-                            if (
-                                message.content._ === "messageSticker" &&
-                                !acc.has(message.content.sticker.setId) &&
-                                !this.stickerIds.has(message.content.sticker.setId)
-                            ) {
-                                acc.set(message.content.sticker.setId, message as any);
-                            }
-                            return acc;
-                        }, new Map<string, StickerMessage>())
-                        .values()
-                ).filter((x) => !this.messageIds.has(x.id));
-
-                for (const message of stickerMessages) {
-                    const content = message.content as MessageSticker;
-
-                    this.messageIds.set(message.id, true);
-                    this.stickerIds.set(content.sticker.setId, true);
-                    this.insertMessage(message);
+                let count = 0;
+                for (const message of messages.messages ?? []) {
+                    if (
+                        message.content._ === "messageSticker" &&
+                        !this.stickerIds.has(message.content.sticker.setId) &&
+                        !this.messageIds.has(message.id)
+                    ) {
+                        const content = message.content;
+                        this.messageIds.add(message.id);
+                        this.stickerIds.add(content.sticker.setId);
+                        this.insertMessage(message as StickerMessage);
+                        count++;
+                    }
+                    this.chatIds.add(message.chatId);
                 }
 
                 this.setLoadingProgress(
@@ -169,8 +164,8 @@ export default class StickerMessagesStore implements IMessagesStore {
 
                 this.save();
 
-                if (stickerMessages.length) {
-                    return stickerMessages.length;
+                if (count) {
+                    return count;
                 }
             }
         } finally {
@@ -180,7 +175,7 @@ export default class StickerMessagesStore implements IMessagesStore {
     }
 
     save() {
-        const { messages, messageIds, stickerIds, startMessage, canLoad } = this;
-        cache.set(this.chatId, { messages, messageIds, stickerIds, startMessage, canLoad });
+        const { messages, messageIds, stickerIds, chatIds, startMessage, canLoad } = this;
+        cache.set(this.chatId, { messages, messageIds, stickerIds, chatIds, startMessage, canLoad });
     }
 }

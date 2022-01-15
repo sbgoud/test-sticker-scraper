@@ -4,15 +4,15 @@ import { makeAutoObservable, observable } from "mobx";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
 
-export interface Chat {
+export interface ChatRecord {
     info?: AirgramChat;
     position?: ChatPosition;
     lastMessage?: Message;
 }
 
 export default class ChatsStore {
-    chatsStore = new Map<number, Chat>();
-    setChat(chatId: number, updater: (chat: Chat) => Chat | void) {
+    chatsStore = new Map<number, ChatRecord>();
+    setChat(chatId: number, updater: (chat: ChatRecord) => ChatRecord | void) {
         let chat = this.chatsStore.get(chatId);
         if (!chat) {
             chat = {};
@@ -34,8 +34,6 @@ export default class ChatsStore {
 
     handlers = new HandlersBuilder()
         .add(UPDATE.updateNewChat, (action, next) => {
-            console.log(action.update.chat.title, "updateNewChat", action);
-
             this.setChat(action.update.chat.id, (chat) => {
                 chat.info = action.update.chat;
             });
@@ -43,9 +41,11 @@ export default class ChatsStore {
             return next();
         })
         .add(UPDATE.updateChatPosition, (action, next) => {
-            this.setChat(action.update.chatId, (chat) => {
-                chat.position = action.update.position;
-            });
+            if (action.update.position.list._ === "chatListMain") {
+                this.setChat(action.update.chatId, (chat) => {
+                    chat.position = action.update.position;
+                });
+            }
 
             return next();
         })

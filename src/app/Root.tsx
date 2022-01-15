@@ -1,4 +1,5 @@
 import { Grid, useMediaQuery } from "@geist-ui/react";
+import cx from "classnames";
 import { ComponentProps } from "react";
 import { Redirect, Route, RouteProps, Switch } from "react-router";
 import Conversation from "./Conversation/Conversation";
@@ -18,8 +19,8 @@ const routes: RouteProps[] = [
         component: Stickers,
     },
     {
-        path: "/discover",
-        component: Discover,
+        path: "/discover/:id?",
+        render: (props) => <Discover key={props.match.params.id} {...props} />,
     },
     {
         path: "/conversation/:id?",
@@ -55,10 +56,10 @@ export default function Root() {
                 </Grid>
             ) : (
                 <>
-                    <Grid {...panelProps} className={styles.panel} sm={8} md={6} lg={4} xl={2}>
+                    <Grid {...panelProps} className={cx(styles.panel, styles.menu)} sm={8} md={6} lg={4} xl={2}>
                         <Menu />
                     </Grid>
-                    <Grid {...panelProps} className={styles.panel} sm={16} md={18} lg={20} xl={22}>
+                    <Grid {...panelProps} className={styles.panel} xs>
                         <Switch>
                             {other.map(toRoute)}
                             <Redirect to="conversation" />

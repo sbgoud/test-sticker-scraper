@@ -1,7 +1,9 @@
-import { Grid, Text, useMediaQuery } from "@geist-ui/react";
+import { Button, Grid, Text, useMediaQuery } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { FiCompass } from "react-icons/fi";
 import { Redirect, RouteComponentProps } from "react-router";
+import { NavLink } from "react-router-dom";
 import { useVirtual } from "react-virtual";
 import {
     CenterLayout,
@@ -14,7 +16,7 @@ import {
     virtualSizeStyles,
 } from "../../components";
 import { useFileStore } from "../../store/FileStore";
-import StickerMessagesStore from "../../store/StickerMessagesStore";
+import MessagesStore from "../../store/MessagesStore";
 import styles from "./Conversation.module.css";
 import Loader from "./Loader";
 import Message from "./Message";
@@ -32,7 +34,7 @@ const Conversation: FC<Props> = ({ match }) => {
 
     const rootStore = useContext(StoreContext);
     const { Chats } = rootStore;
-    const [store] = useState(() => new StickerMessagesStore(rootStore, chatId));
+    const [store] = useState(() => new MessagesStore(rootStore, chatId));
 
     const chat = store.chatStore.chat;
     const messages = store.messages;
@@ -138,6 +140,9 @@ const Conversation: FC<Props> = ({ match }) => {
                 <Grid xs>
                     <UserCard src={photo} name={chat?.title} />
                 </Grid>
+                <NavLink to={`/discover/${chatId}`}>
+                    <Button auto type="abort" iconRight={<FiCompass />} padding={0.5} />
+                </NavLink>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
                 <List ref={parentRef as any} onScroll={handleScroll}>

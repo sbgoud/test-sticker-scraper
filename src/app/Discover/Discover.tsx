@@ -1,18 +1,23 @@
 import { Grid, Spacer, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { FC, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef } from "react";
+import { RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
-import { List, MobileBackButton, StoreContext, Toolbar, virtualSizeStyles } from "../../components";
+import { List, MobileBackButton, Toolbar, virtialContainerStyle, virtualSizeStyles } from "../../components";
+import { useDiscoverStore } from "../../store/DiscoverStore";
 import { useScreenGridWidth } from "../../utils";
 import ChatRow from "../Menu/ChatRow";
 import styles from "./Discover.module.css";
 
 let scrollTop = 0;
 
-const Discover: FC = () => {
-    const { Chats } = useContext(StoreContext);
+export interface Props extends RouteComponentProps<{ id?: string | undefined }> {}
 
-    const itemData = Chats.discover;
+const Discover: FC<Props> = ({ match }) => {
+    const chatId = match.params.id ? parseInt(match.params.id) : undefined;
+    const store = useDiscoverStore(chatId);
+
+    const itemData = store.chats;
 
     const parentRef = useRef<HTMLElement>();
 
@@ -46,19 +51,15 @@ const Discover: FC = () => {
                 <Spacer w={1} />
                 <Grid>
                     <Text small type="secondary">
-                        Chats from your chats
+                        {store.messagesStore
+                            ? `chats mentioned in ${store.messagesStore.chatStore.chat?.title}`
+                            : "chats from your chats"}
                     </Text>
                 </Grid>
             </Toolbar>
             <Grid.Container className={styles.root} direction="column" justify="flex-start">
                 <List ref={parentRef as any} onScroll={handleScroll}>
-                    <div
-                        style={{
-                            height: `${rowVirtualizer.totalSize}px`,
-                            width: "100%",
-                            position: "relative",
-                        }}
-                    >
+                    <div style={virtialContainerStyle(rowVirtualizer.totalSize)}>
                         {rowVirtualizer.virtualItems.map(({ index, size, start }) => {
                             const chats = itemData.slice(index * gridWidth, (index + 1) * gridWidth);
                             return (

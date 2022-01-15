@@ -9,7 +9,7 @@ export class AirgramEvents {
         this.event.setMaxListeners(99);
     }
     emit: MiddlewareFn = (action, next) => {
-        //console.log(action);
+        console.log(action);
         const listeners = (this.event.listeners(AirgramEvents.eventName) ?? []) as MiddlewareFn[];
         return Composer.compose(listeners)(action, next);
     };

@@ -3,12 +3,12 @@ import cx from "classnames";
 import { FC, memo } from "react";
 import { NavLink } from "react-router-dom";
 import { UserCard } from "../../components";
-import { Chat } from "../../store/ChatsStore";
+import { ChatRecord } from "../../store/ChatsStore";
 import { useFileStore } from "../../store/FileStore";
 import styles from "./ChatRow.module.css";
 
 interface ChatRowProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-    chat: Chat;
+    chat: ChatRecord;
 }
 
 const ChatRow: FC<ChatRowProps> = ({ chat, className, ...other }) => {

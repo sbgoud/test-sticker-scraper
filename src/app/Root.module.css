@@ -1,3 +1,7 @@
 .panel {
     transition: all 0.5s;
 }
+
+.menu {
+    min-width: 300px;
+}

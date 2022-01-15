@@ -1,12 +1,10 @@
-import { FC } from "react";
+import { Loading, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-
-import { Text, Loading } from "@geist-ui/react";
-
-import StickerMessagesStore from "../../store/StickerMessagesStore";
+import { FC } from "react";
+import MessagesStore from "../../store/MessagesStore";
 
 interface Props {
-    store: StickerMessagesStore;
+    store: MessagesStore;
 }
 
 const Loader: FC<Props> = ({ store }) => {
