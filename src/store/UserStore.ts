@@ -29,16 +29,16 @@ export class UserStore {
             handlers: false,
         });
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
     dispose() {
-        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateUser, (ctx, next) => {
-            if (ctx.update.user.id === this.userId) {
-                this.user = ctx.update.user;
+        .add(UPDATE.updateUser, (action, next) => {
+            if (action.update.user.id === this.userId) {
+                this.user = action.update.user;
             }
 
             return next();

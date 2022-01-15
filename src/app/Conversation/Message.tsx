@@ -28,13 +28,16 @@ const Message = ({ message, ...other }: MessageProps) => {
         <div className={styles.root} {...other}>
             <Grid.Container direction="column">
                 <Grid>
-                    <UserCard
-                        src={senderPhoto}
-                        name={sender.user ? sender.user.firstName + " " + sender.user.lastName : sender.chat?.title}
-                    >
-                        {new Date(message.date * 1000).toLocaleString()}
-                    </UserCard>
+                    <NavLink to={`/conversation/${message.chatId}`}>
+                        <UserCard
+                            src={senderPhoto}
+                            name={sender.user ? sender.user.firstName + " " + sender.user.lastName : sender.chat?.title}
+                        >
+                            {new Date(message.date * 1000).toLocaleString()}
+                        </UserCard>
+                    </NavLink>
                 </Grid>
+
                 <Grid className={styles.container} alignItems="flex-start">
                     <NavLink to={`/set/${sticker.setId}`}>
                         <Sticker sticker={sticker} />

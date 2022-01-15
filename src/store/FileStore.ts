@@ -40,16 +40,16 @@ export default class FileStore<TFormat extends FileFormats> {
         this.params = params;
         this.load();
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
 
     dispose() {
-        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateFile, (ctx, next) => {
-            if (ctx.update.file.id === this.file?.id) {
+        .add(UPDATE.updateFile, (action, next) => {
+            if (action.update.file.id === this.file?.id) {
                 this.load();
             }
 

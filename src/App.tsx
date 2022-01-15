@@ -1,19 +1,14 @@
-import { useContext, useEffect } from "react";
+import { CssBaseline, GeistProvider, Page } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { GeistProvider, CssBaseline, Page } from "@geist-ui/react";
-
-import { StoreContext, CssThemeVariables } from "./components";
+import { useContext } from "react";
 import AuthProvider from "./app/AuthProvider";
-import Root from "./app/Root";
+import DataLoader from "./app/DataLoader";
 import Footer from "./app/Footer";
+import Root from "./app/Root";
+import { CssThemeVariables, StoreContext } from "./components";
 
 function App() {
-    const { Theme, Chats } = useContext(StoreContext);
-
-    useEffect(() => {
-        Chats.load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const { Theme } = useContext(StoreContext);
 
     return (
         <GeistProvider themeType={Theme.currentTheme}>
@@ -22,7 +17,9 @@ function App() {
             <Page render="effect-seo" scale={0.5} width="100%" padding={0}>
                 <Page.Content paddingTop={0}>
                     <AuthProvider>
-                        <Root />
+                        <DataLoader>
+                            <Root />
+                        </DataLoader>
                     </AuthProvider>
                 </Page.Content>
                 <Page.Footer>

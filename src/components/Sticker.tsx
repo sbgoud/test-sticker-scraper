@@ -2,6 +2,7 @@ import { Sticker as AirgramSticker } from "@airgram/core";
 import { Spinner } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC } from "react";
+import { ErrorBoundary } from "./ErrorBoundary";
 import styles from "./Sticker.module.css";
 import { FileViewProps } from "./viewer/FileViewProps";
 import ImageView from "./viewer/ImageView";
@@ -52,7 +53,7 @@ const Sticker: FC<StickerProps> = ({
 
     return (
         <div className={styles.root} style={{ height, width }}>
-            {children}
+            <ErrorBoundary>{children}</ErrorBoundary>
         </div>
     );
 };

@@ -1,13 +1,10 @@
-import { FC, memo } from "react";
-import cx from "classnames";
-import { NavLink } from "react-router-dom";
-
 import { Grid } from "@geist-ui/react";
-
-import { Chat } from "../../store/ChatsStore";
+import cx from "classnames";
+import { FC, memo } from "react";
+import { NavLink } from "react-router-dom";
 import { UserCard } from "../../components";
+import { Chat } from "../../store/ChatsStore";
 import { useFileStore } from "../../store/FileStore";
-
 import styles from "./ChatRow.module.css";
 
 interface ChatRowProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {

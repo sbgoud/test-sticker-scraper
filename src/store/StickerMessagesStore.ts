@@ -66,24 +66,24 @@ export default class StickerMessagesStore implements IMessagesStore {
             handlers: false,
         });
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
 
     dispose() {
         this.chatStore.dispose();
-        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateNewChat, (ctx, next) => {
-            if (ctx.update.chat.id === this.chatId) {
+        .add(UPDATE.updateNewChat, (action, next) => {
+            if (action.update.chat.id === this.chatId) {
                 this.load();
             }
 
             return next();
         })
-        .add(UPDATE.updateNewMessage, (ctx, next) => {
-            const message = ctx.update.message;
+        .add(UPDATE.updateNewMessage, (action, next) => {
+            const message = action.update.message;
             if (message.chatId === this.chatId && !this.messageIds.has(message.id)) {
                 this.messageIds.set(message.id, true);
 

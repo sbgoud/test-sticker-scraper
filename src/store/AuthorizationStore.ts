@@ -11,17 +11,26 @@ export default class AuthorizationStore {
     }
     firstLaunch = true;
     user?: User;
+    setUser(user: User) {
+        this.user = user;
+    }
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
             user: observable.ref,
             handlers: false,
         });
+
+        rootStore.events.addListener(this.handlers);
+    }
+
+    dispose() {
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateAuthorizationState, (ctx) => {
-            const state = ctx.update.authorizationState;
+        .add(UPDATE.updateAuthorizationState, (action, next) => {
+            const state = action.update.authorizationState;
 
             if (
                 this.firstLaunch &&
@@ -34,6 +43,8 @@ export default class AuthorizationStore {
             }
 
             this.setState(state);
+
+            return next();
         })
         .build();
 
@@ -93,6 +104,6 @@ export default class AuthorizationStore {
             throw user.response;
         }
 
-        this.user = user.response as User;
+        this.setUser(user.response);
     }
 }

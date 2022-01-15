@@ -1,13 +1,9 @@
-import { FC, useContext, useEffect, useRef, useCallback } from "react";
-import { observer } from "mobx-react-lite";
-import { useVirtual } from "react-virtual";
-
 import { Grid } from "@geist-ui/react";
-
-import { StoreContext, List } from "../../components";
-
+import { observer } from "mobx-react-lite";
+import { FC, useCallback, useContext, useEffect, useRef } from "react";
+import { useVirtual } from "react-virtual";
+import { List, StoreContext } from "../../components";
 import ChatRow from "./ChatRow";
-
 import styles from "./Chats.module.css";
 
 let scrollTop = 0;
@@ -15,7 +11,7 @@ let scrollTop = 0;
 const Chats: FC = () => {
     const { Chats } = useContext(StoreContext);
 
-    const itemData = Chats.chatsList;
+    const itemData = Chats.chatListMain;
 
     const parentRef = useRef<HTMLElement>();
 

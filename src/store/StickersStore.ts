@@ -1,8 +1,6 @@
 import { UPDATE } from "@airgram/constants";
 import { StickerSetInfo } from "@airgram/web";
 import { makeAutoObservable, observable } from "mobx";
-import { useEffect, useState } from "react";
-import { store as rootStore } from "../components";
 import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
 
@@ -75,17 +73,18 @@ export class StickersStore {
             sets: observable.shallow,
             originalPosition: false,
             newPosition: false,
+            handlers: false,
         });
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
 
     dispose() {
-        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateInstalledStickerSets, (ctx, next) => {
+        .add(UPDATE.updateInstalledStickerSets, (action, next) => {
             this.load(true);
 
             return next();
@@ -118,19 +117,4 @@ export class StickersStore {
     toggleReordering() {
         this.setReordering(!this.isReordering);
     }
-}
-
-export function useStickersStore(): StickersStore {
-    const [store] = useState(() => new StickersStore(rootStore));
-
-    useEffect(() => {
-        store.load();
-
-        return () => {
-            store.dispose();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    return store;
 }

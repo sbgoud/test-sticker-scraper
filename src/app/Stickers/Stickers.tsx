@@ -1,12 +1,11 @@
-import { Button, Grid, Text } from "@geist-ui/react";
+import { Button, Grid, Spacer, Text } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
-import { FC, useCallback, useEffect, useMemo, useRef } from "react";
+import { FC, useCallback, useContext, useMemo, useRef } from "react";
 import { MdSwapVert } from "react-icons/md";
 import { RouteComponentProps } from "react-router";
 import { useVirtual } from "react-virtual";
-import { List, MobileBackButton, Toolbar, TOOLBAR_HEIGHT, virtialContainerStyle } from "../../components";
+import { List, MobileBackButton, StoreContext, Toolbar, TOOLBAR_HEIGHT, virtialContainerStyle } from "../../components";
 import { STICKER_SIZE } from "../../components/Sticker";
-import { useStickersStore } from "../../store/StickersStore";
 import FavoriteStickersRow from "./FavoriteStickersRow";
 import RecentStickersRow from "./RecentStickersRow";
 import styles from "./Stickers.module.css";
@@ -15,12 +14,8 @@ import StickerSetRow from "./StickerSetRow";
 interface Props extends RouteComponentProps {}
 
 const Stickers: FC<Props> = () => {
-    const store = useStickersStore();
-
-    useEffect(() => {
-        store.load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const rootStore = useContext(StoreContext);
+    const { Stickers: store } = rootStore;
 
     const parentRef = useRef<HTMLElement>();
 
@@ -66,9 +61,16 @@ const Stickers: FC<Props> = () => {
         <Grid.Container direction="column" justify="flex-start" alignItems="stretch">
             <Toolbar>
                 <MobileBackButton />
-                <Grid xs>
+                <Grid>
                     <Text>Stickers</Text>
                 </Grid>
+                <Spacer w={1} />
+                <Grid>
+                    <Text small type="secondary">
+                        control panel
+                    </Text>
+                </Grid>
+                <Grid xs />
                 <Grid>
                     <Button
                         auto

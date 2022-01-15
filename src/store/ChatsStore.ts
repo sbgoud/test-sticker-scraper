@@ -11,45 +11,53 @@ export interface Chat {
 }
 
 export default class ChatsStore {
-    chats = new Map<number, Chat>();
+    chatsStore = new Map<number, Chat>();
     setChat(chatId: number, updater: (chat: Chat) => Chat | void) {
-        let chat = this.chats.get(chatId);
+        let chat = this.chatsStore.get(chatId);
         if (!chat) {
             chat = {};
         }
 
         chat = updater(chat!) ?? chat;
-        this.chats.set(chatId, chat!);
+        this.chatsStore.set(chatId, chat!);
     }
 
     constructor(private rootStore: RootStore) {
-        makeAutoObservable(this, { chats: observable.shallow, handlers: false });
+        makeAutoObservable(this, { chatsStore: observable.shallow, handlers: false });
+
+        rootStore.events.addListener(this.handlers);
+    }
+
+    dispose() {
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateNewChat, (ctx, next) => {
-            this.setChat(ctx.update.chat.id, (chat) => {
-                chat.info = ctx.update.chat;
+        .add(UPDATE.updateNewChat, (action, next) => {
+            console.log(action.update.chat.title, "updateNewChat", action);
+
+            this.setChat(action.update.chat.id, (chat) => {
+                chat.info = action.update.chat;
             });
 
             return next();
         })
-        .add(UPDATE.updateChatPosition, (ctx, next) => {
-            this.setChat(ctx.update.chatId, (chat) => {
-                chat.position = ctx.update.position;
+        .add(UPDATE.updateChatPosition, (action, next) => {
+            this.setChat(action.update.chatId, (chat) => {
+                chat.position = action.update.position;
             });
 
             return next();
         })
-        .add(UPDATE.updateChatLastMessage, (ctx, next) => {
-            this.setChat(ctx.update.chatId, (chat) => {
-                chat.lastMessage = ctx.update.lastMessage;
+        .add(UPDATE.updateChatLastMessage, (action, next) => {
+            this.setChat(action.update.chatId, (chat) => {
+                chat.lastMessage = action.update.lastMessage;
             });
 
-            const position = ctx.update.positions.find((x) => x.list._ === "chatListMain");
+            const position = action.update.positions.find((x) => x.list._ === "chatListMain");
 
             if (position) {
-                this.setChat(ctx.update.chatId, (chat) => {
+                this.setChat(action.update.chatId, (chat) => {
                     chat.position = position;
                 });
             }
@@ -59,14 +67,24 @@ export default class ChatsStore {
         .build();
 
     async load() {
-        await this.rootStore.Airgram.api.loadChats({
+        const chats = await this.rootStore.Airgram.api.loadChats({
             chatList: { _: "chatListMain" },
             limit: 10,
         });
+        console.log("Chats", chats);
     }
 
-    get chatsList() {
-        return Array.from(this.chats.values())
+    get chats() {
+        return Array.from(this.chatsStore.values());
+    }
+
+    get discover() {
+        return this.chats.filter((x) => x.position === undefined);
+    }
+
+    get chatListMain() {
+        return this.chats
+            .filter((x) => x.position?.list._ === "chatListMain")
             .sort((a, b) => (BigInt(a.position?.order ?? 0) < BigInt(b.position?.order ?? 0) ? 0 : -1))
             .sort((a, b) => {
                 const x = a.position?.isPinned;

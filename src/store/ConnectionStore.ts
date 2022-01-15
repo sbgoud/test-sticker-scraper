@@ -1,6 +1,6 @@
 import { CONNECTION_STATE, UPDATE } from "@airgram/constants";
-import { MiddlewareFn, UpdateConnectionState } from "@airgram/core";
 import { makeAutoObservable } from "mobx";
+import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
 
 export default class ConnectionStore {
@@ -11,18 +11,22 @@ export default class ConnectionStore {
 
     constructor(private rootStore: RootStore) {
         makeAutoObservable(this, {
-            middleware: false,
+            handlers: false,
         });
+
+        rootStore.events.addListener(this.handlers);
     }
 
-    middleware = (): MiddlewareFn => async (ctx, next) => {
-        if (ctx._ === UPDATE.updateConnectionState && "update" in ctx) {
-            const context = ctx.update as unknown as UpdateConnectionState;
-            const state = context.state._ as CONNECTION_STATE;
+    dispose() {
+        this.rootStore.events.removeListener(this.handlers);
+    }
 
+    handlers = new HandlersBuilder()
+        .add(UPDATE.updateConnectionState, (action, next) => {
+            const state = action.update.state._ as CONNECTION_STATE;
             this.setState(state);
-        }
 
-        return next();
-    };
+            return next();
+        })
+        .build();
 }

@@ -79,7 +79,7 @@ const Conversation: FC<Props> = ({ match }) => {
     }, []);
 
     useEffect(() => {
-        if (Chats.chats.has(chatId)) {
+        if (Chats.chatsStore.has(chatId)) {
             (async () => {
                 const loaded = await store.init();
                 scrollView(loaded);
@@ -89,7 +89,7 @@ const Conversation: FC<Props> = ({ match }) => {
         return () => {
             store.dispose();
         };
-    }, [Chats.chats, chatId, scrollView, store]);
+    }, [Chats.chatsStore, chatId, scrollView, store]);
 
     const tryLoadMessages = useCallback(async () => {
         if (parentRef.current && parentRef.current.scrollTop < PLACEHOLDER_HEIGHT - 200) {

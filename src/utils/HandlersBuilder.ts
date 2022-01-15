@@ -1,5 +1,5 @@
 import { UPDATE } from "@airgram/constants";
-import { UpdateContext, UpdateUnion, ApiMethods, MiddlewareFn, Composer } from "@airgram/core";
+import { ApiMethods, Composer, MiddlewareFn, UpdateContext, UpdateUnion } from "@airgram/core";
 
 type UpdateName = `${UPDATE}`;
 
@@ -35,11 +35,11 @@ export default class HandlersBuilder {
     }
 
     build(): MiddlewareFn {
-        return (ctx, next) => {
-            const handlers = this.handlers.filter(([update]) => update === ctx._) ?? [];
+        return (action, next) => {
+            const handlers = this.handlers.filter(([update]) => update === action._) ?? [];
 
             if (handlers.length) {
-                return Composer.compose(handlers.map(([, handler]) => handler))(ctx, next);
+                return Composer.compose(handlers.map(([, handler]) => handler))(action, next);
             }
 
             return next();

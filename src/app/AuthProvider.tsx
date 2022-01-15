@@ -1,8 +1,8 @@
 import { AUTHORIZATION_STATE } from "@airgram/constants";
-import { Spinner } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useContext } from "react";
-import { CenterLayout, StoreContext } from "../components";
+import { StoreContext } from "../components";
+import { AppLoader } from "../components/AppLoader";
 import SignIn from "./SignIn/SignIn";
 
 const loadingState: string[] = [
@@ -21,18 +21,12 @@ const AuthProvider: FC = ({ children }) => {
     const { Authorization } = useContext(StoreContext);
 
     if (!Authorization.state || loadingState.includes(Authorization.state._)) {
-        return (
-            <CenterLayout>
-                <Spinner scale={5} />
-            </CenterLayout>
-        );
+        return <AppLoader />;
     }
 
     if (signInState.includes(Authorization.state._)) {
         return <SignIn />;
     }
-
-    console.log(Authorization.state._);
 
     return <>{children}</>;
 };

@@ -21,18 +21,18 @@ export default class StickerSetStore {
             const set = cache.get(this.setId);
             this.setSet(set!);
         }
-        makeAutoObservable(this, { set: observable.ref });
+        makeAutoObservable(this, { set: observable.ref, handlers: false });
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
     dispose() {
-        rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateStickerSet, (ctx, next) => {
-            if (ctx.update.stickerSet.id === this.setId) {
-                this.setSet(ctx.update.stickerSet);
+        .add(UPDATE.updateStickerSet, (action, next) => {
+            if (action.update.stickerSet.id === this.setId) {
+                this.setSet(action.update.stickerSet);
             }
 
             return next();

@@ -2,6 +2,7 @@ import { Grid, useMediaQuery } from "@geist-ui/react";
 import { ComponentProps } from "react";
 import { Redirect, Route, RouteProps, Switch } from "react-router";
 import Conversation from "./Conversation/Conversation";
+import Discover from "./Discover/Discover";
 import Menu from "./Menu/Menu";
 import styles from "./Root.module.css";
 import Set from "./Set/Set";
@@ -15,6 +16,10 @@ const routes: RouteProps[] = [
     {
         path: "/stickers",
         component: Stickers,
+    },
+    {
+        path: "/discover",
+        component: Discover,
     },
     {
         path: "/conversation/:id?",

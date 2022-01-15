@@ -1,7 +1,7 @@
 import { Button, Grid, Spinner } from "@geist-ui/react";
 import { observer } from "mobx-react-lite";
 import { FC, useContext, useEffect } from "react";
-import { FiLogOut } from "react-icons/fi";
+import { FiCompass, FiLogOut } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
 import { StoreContext, UserCard } from "../../components";
 import { useFileStore } from "../../store/FileStore";
@@ -28,8 +28,10 @@ const User: FC = () => {
                     {Authorization.user.username}
                 </UserCard>
             </NavLink>
-
-            <Button auto type="abort" iconRight={<FiLogOut />} onClick={() => Authorization.logOut()} />
+            <NavLink to="/discover">
+                <Button auto type="abort" iconRight={<FiCompass />} padding={0.5} />
+            </NavLink>
+            <Button auto type="abort" iconRight={<FiLogOut />} padding={0.5} onClick={() => Authorization.logOut()} />
         </Grid.Container>
     );
 };

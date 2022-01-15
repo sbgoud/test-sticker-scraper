@@ -29,17 +29,17 @@ export class ChatStore {
             handlers: false,
         });
 
-        rootStore.events.addListener(RootStore.eventName, this.handlers);
+        rootStore.events.addListener(this.handlers);
     }
 
     dispose() {
-        this.rootStore.events.removeListener(RootStore.eventName, this.handlers);
+        this.rootStore.events.removeListener(this.handlers);
     }
 
     handlers = new HandlersBuilder()
-        .add(UPDATE.updateNewChat, (ctx, next) => {
-            if (ctx.update.chat.id === this.chatId) {
-                this.chat = ctx.update.chat;
+        .add(UPDATE.updateNewChat, (action, next) => {
+            if (action.update.chat.id === this.chatId) {
+                this.chat = action.update.chat;
             }
 
             return next();
