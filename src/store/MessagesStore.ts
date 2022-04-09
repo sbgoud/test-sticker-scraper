@@ -176,6 +176,13 @@ export default class MessagesStore implements IMessagesStore {
 
     save() {
         const { messages, messageIds, stickerIds, chatIds, startMessage, canLoad } = this;
-        cache.set(this.chatId, { messages, messageIds, stickerIds, chatIds, startMessage, canLoad });
+        cache.set(this.chatId, {
+            messages,
+            messageIds,
+            stickerIds,
+            chatIds,
+            startMessage,
+            canLoad,
+        });
     }
 }

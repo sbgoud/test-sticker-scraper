@@ -17,6 +17,10 @@ export function blobToText(blob: Blob) {
     return new Response(blob).text();
 }
 
+export function blobToUrl(blob: Blob) {
+    return URL.createObjectURL(blob);
+}
+
 export function blobToBase64(blob: Blob) {
     const reader = new FileReader();
     reader.readAsDataURL(blob);

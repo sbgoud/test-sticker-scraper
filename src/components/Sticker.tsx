@@ -7,6 +7,7 @@ import styles from "./Sticker.module.css";
 import { FileViewProps } from "./viewer/FileViewProps";
 import ImageView from "./viewer/ImageView";
 import LottieView from "./viewer/LottieView";
+import VideoView from "./viewer/VideoView";
 
 export const STICKER_SIZE = {
     small: 100,
@@ -27,28 +28,46 @@ const Sticker: FC<StickerProps> = ({
 }) => {
     let children: JSX.Element | undefined = undefined;
 
-    if (sticker.isAnimated) {
-        children = (
-            <LottieView
-                className={styles.sticker}
-                file={sticker.sticker}
-                fallback={loader}
-                height={height}
-                width={width}
-                {...other}
-            />
-        );
-    } else {
-        children = (
-            <ImageView
-                className={styles.sticker}
-                file={sticker.sticker}
-                fallback={loader}
-                height={height}
-                width={width}
-                {...other}
-            />
-        );
+    switch (sticker.type._) {
+        case "stickerTypeAnimated": {
+            children = (
+                <LottieView
+                    className={styles.sticker}
+                    file={sticker.sticker}
+                    fallback={loader}
+                    height={height}
+                    width={width}
+                    {...other}
+                />
+            );
+            break;
+        }
+        case "stickerTypeStatic": {
+            children = (
+                <ImageView
+                    className={styles.sticker}
+                    file={sticker.sticker}
+                    fallback={loader}
+                    height={height}
+                    width={width}
+                    {...other}
+                />
+            );
+            break;
+        }
+        case "stickerTypeVideo": {
+            children = (
+                <VideoView
+                    className={styles.sticker}
+                    file={sticker.sticker}
+                    fallback={loader}
+                    height={height}
+                    width={width}
+                    {...other}
+                />
+            );
+            break;
+        }
     }
 
     return (

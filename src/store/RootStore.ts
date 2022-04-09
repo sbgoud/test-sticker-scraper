@@ -1,8 +1,8 @@
 import { AUTHORIZATION_STATE, UPDATE } from "@airgram/constants";
-import { Airgram, MiddlewareFn } from "@airgram/web";
+import { MiddlewareFn } from "@airgram/web";
 import { makeAutoObservable } from "mobx";
+import { Airgram, AirgramFactory } from "../airgram";
 import { HandlersBuilder } from "../utils";
-import { AirgramFactory } from "./Airgram";
 import { AirgramEvents } from "./AirgramEvents";
 import AuthorizationStore from "./AuthorizationStore";
 import ChatsStore from "./ChatsStore";

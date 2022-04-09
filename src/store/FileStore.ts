@@ -3,13 +3,11 @@ import { DownloadFileParams, File } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
 import { store as rootStore } from "../components";
-import { blobToBase64, blobToJson, blobToLotty, blobToText } from "../utils";
+import { blobToBase64, blobToJson, blobToLotty, blobToText, blobToUrl } from "../utils";
 import HandlersBuilder from "../utils/HandlersBuilder";
 import RootStore from "./RootStore";
 
-const cache = new Map<number, any>();
-
-type FileFormats = "blob" | "base64" | "text" | "json" | "lotty";
+type FileFormats = "blob" | "base64" | "text" | "json" | "lotty" | "url";
 
 type FileFormat<TFormat extends FileFormats> = TFormat extends "blob"
     ? Blob
@@ -21,7 +19,14 @@ type FileFormat<TFormat extends FileFormats> = TFormat extends "blob"
 
 type DownloadParams = Omit<DownloadFileParams, "fileId">;
 
-export default class FileStore<TFormat extends FileFormats> {
+interface FileContent<TFormat extends FileFormats> {
+    blob?: Blob;
+    content?: FileFormat<TFormat>;
+}
+
+const cache = new Map<number, FileContent<any>>();
+
+export default class FileStore<TFormat extends FileFormats> implements FileContent<TFormat> {
     isLoading = false;
     setLoading(value: boolean) {
         this.isLoading = value;
@@ -29,7 +34,9 @@ export default class FileStore<TFormat extends FileFormats> {
     private format?: FileFormats = undefined;
     private file?: File = undefined;
     content?: FileFormat<TFormat> = undefined;
-    setContent(content: any) {
+    blob?: Blob = undefined;
+    setContent({ blob, content }: FileContent<TFormat>) {
+        this.blob = blob;
         this.content = content;
     }
     private params?: DownloadParams = undefined;
@@ -48,6 +55,7 @@ export default class FileStore<TFormat extends FileFormats> {
     }
 
     handlers = new HandlersBuilder()
+        //.add(UPDATE.error)
         .add(UPDATE.updateFile, (action, next) => {
             if (action.update.file.id === this.file?.id) {
                 this.load();
@@ -84,24 +92,44 @@ export default class FileStore<TFormat extends FileFormats> {
             const fileId = this.file.id;
 
             const cachedValue = cache.get(fileId);
-            if (cachedValue) {
+            if (cachedValue?.blob?.size === this.file.size) {
                 this.setContent(cachedValue);
                 return cachedValue;
             }
 
-            const download = await this.rootStore.Airgram.api.downloadFile({ fileId, priority: 1, ...this.params });
+            let blob = this.blob ?? new Blob();
 
-            if (download.response._ === "error") {
-                return;
+            if (!this.blob) {
+                const download = await this.rootStore.Airgram.api.downloadFile({
+                    fileId,
+                    priority: 1,
+                    ...this.params,
+                });
+
+                this.setContent({ blob });
+
+                if (download.response._ === "error") {
+                    return;
+                }
             }
 
-            const file = await this.rootStore.Airgram.api.readFilePart({ fileId });
+            while (blob.size < this.file.size) {
+                const file = await this.rootStore.Airgram.api.readFilePart({
+                    fileId,
+                    offset: blob.size,
+                });
 
-            if (file.response._ === "error") {
-                return;
+                if (file.response._ === "error") {
+                    this.setContent({ blob });
+                    console.log("ERROR", file.response, file);
+                    if (file.response.message === "Error: FS error") {
+                        continue;
+                    }
+                    return;
+                }
+
+                blob = new Blob([blob, file.response.data]);
             }
-
-            const blob = file.response.data as unknown as Blob;
 
             let content: any = null;
             if (this.format === "blob") {
@@ -110,6 +138,10 @@ export default class FileStore<TFormat extends FileFormats> {
 
             if (this.format === "base64") {
                 content = await blobToBase64(blob);
+            }
+
+            if (this.format === "url") {
+                content = await blobToUrl(blob);
             }
 
             if (this.format === "text") {
@@ -124,10 +156,12 @@ export default class FileStore<TFormat extends FileFormats> {
                 content = await blobToLotty(blob);
             }
 
-            cache.set(fileId, content);
-            this.setContent(content);
+            cache.set(fileId, { blob, content });
+            this.setContent({ blob, content });
 
             return content;
+        } catch (error) {
+            console.error(error);
         } finally {
             this.setLoading(false);
         }
