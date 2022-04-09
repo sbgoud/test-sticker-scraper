@@ -1,7 +1,7 @@
 import { AUTHORIZATION_STATE, UPDATE } from "@airgram/constants";
 import { AuthorizationStateUnion, User } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
-import HandlersBuilder from "../utils/HandlersBuilder";
+import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
 
 export default class AuthorizationStore {

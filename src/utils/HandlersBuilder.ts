@@ -27,7 +27,7 @@ type Handler<TAction extends ActionName> = MiddlewareFn<PickContext<TAction>>;
 
 type HandlerRecord<TAction extends ActionName> = [action: TAction, handler: Handler<TAction>];
 
-export default class HandlersBuilder {
+export class HandlersBuilder {
     private handlers: Array<HandlerRecord<any>> = [];
     add<TAction extends ActionName>(...args: HandlerRecord<TAction>) {
         this.handlers.push(args);

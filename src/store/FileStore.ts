@@ -3,8 +3,15 @@ import { DownloadFileParams, File } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
 import { useEffect, useState } from "react";
 import { store as rootStore } from "../components";
-import { blobToBase64, blobToJson, blobToLotty, blobToText, blobToUrl } from "../utils";
-import HandlersBuilder from "../utils/HandlersBuilder";
+import {
+    blobToBase64,
+    blobToJson,
+    blobToLotty,
+    blobToText,
+    blobToUrl,
+    HandlersBuilder,
+    promiseWithTimeout,
+} from "../utils";
 import RootStore from "./RootStore";
 
 type FileFormats = "blob" | "base64" | "text" | "json" | "lotty" | "url";
@@ -36,12 +43,16 @@ export default class FileStore<TFormat extends FileFormats> implements FileConte
     content?: FileFormat<TFormat> = undefined;
     blob?: Blob = undefined;
     setContent({ blob, content }: FileContent<TFormat>) {
-        this.blob = blob;
-        this.content = content;
+        if (blob) {
+            this.blob = blob;
+        }
+        if (content) {
+            this.content = content;
+        }
     }
     private params?: DownloadParams = undefined;
     constructor(private rootStore: RootStore, file?: File, format?: FileFormats, params?: DownloadParams) {
-        makeAutoObservable(this, { content: observable.ref, handlers: false });
+        makeAutoObservable(this, { blob: false, content: observable.ref, handlers: false });
         this.file = file;
         this.format = format;
         this.params = params;
@@ -103,32 +114,45 @@ export default class FileStore<TFormat extends FileFormats> implements FileConte
                 const download = await this.rootStore.Airgram.api.downloadFile({
                     fileId,
                     priority: 1,
+                    offset: 0,
+                    limit: 0,
                     ...this.params,
                 });
-
-                this.setContent({ blob });
 
                 if (download.response._ === "error") {
                     return;
                 }
+
+                this.setContent({ blob });
             }
 
             while (blob.size < this.file.size) {
-                const file = await this.rootStore.Airgram.api.readFilePart({
-                    fileId,
-                    offset: blob.size,
-                });
+                const filePart = await promiseWithTimeout(
+                    this.rootStore.Airgram.api.readFilePart({
+                        fileId,
+                        offset: blob.size,
+                        count: Math.min(this.file.size - blob.size, 65536),
+                    }),
+                    5000
+                );
 
-                if (file.response._ === "error") {
+                if (!filePart || filePart.response._ === "error") {
                     this.setContent({ blob });
-                    console.log("ERROR", file.response, file);
-                    if (file.response.message === "Error: FS error") {
-                        continue;
-                    }
                     return;
                 }
 
-                blob = new Blob([blob, file.response.data]);
+                const partBlob = filePart.response.data as unknown as Blob;
+
+                if (partBlob.size === 0) {
+                    return;
+                }
+
+                blob = new Blob([blob, partBlob]);
+                this.setContent({ blob });
+            }
+
+            if (blob.size !== this.file.size) {
+                throw new Error("File size mismatch");
             }
 
             let content: any = null;

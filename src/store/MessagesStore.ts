@@ -1,7 +1,7 @@
 import { UPDATE } from "@airgram/constants";
 import { Message, Messages, MessageSticker } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
-import HandlersBuilder from "../utils/HandlersBuilder";
+import { HandlersBuilder } from "../utils";
 import { ChatStore } from "./ChatStore";
 import RootStore from "./RootStore";
 

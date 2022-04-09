@@ -1,7 +1,7 @@
 import { UPDATE } from "@airgram/constants";
 import { Chat as AirgramChat, ChatPosition, Message } from "@airgram/core";
 import { makeAutoObservable, observable } from "mobx";
-import HandlersBuilder from "../utils/HandlersBuilder";
+import { HandlersBuilder } from "../utils";
 import RootStore from "./RootStore";
 
 export interface ChatRecord {
